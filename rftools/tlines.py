@@ -193,3 +193,181 @@ class CircularWaveguide:
         p_coeff = p_temp[int(mode[2:3]), int(mode[3:4])]
 
         return p_coeff * sc.c / (2 * np.pi * self.a)
+
+
+# class ParallelPlateWaveguide:
+#     """
+#     Class for a parallel plate waveguide.
+#     """
+
+#     def __init__(self, er, d, w, **kwargs):
+#         """
+#         Initialize microstrip.
+
+#         :param er: relative permittivity of the dielectric
+#         :param d: thickness of dielectric slab
+#         :param w: width of microstrip
+#         """
+
+#         verbose = kwargs.pop('verbose', True)
+#         comment = kwargs.pop('comment', '')
+
+#         self.er = er
+#         self.d = d
+#         self.w = w 
+
+#         self.z0 = d / w * np.sqrt(sc.mu_0 / sc.epsilon_0 / er)
+#         # self.ee = _ee(er, d, w)
+#         # self.vp = sc.c / np.sqrt(self.ee)
+#         # self.z0 = find_microstrip_z0(er, d, w)
+
+#         if verbose:
+#             parallel_plate_z0 = d / w * Z0 / np.sqrt(self.ee)
+#             fringing_factor = self.z0 / parallel_plate_z0
+            
+#             header("Parallel plate {0}".format(comment))
+#             pvalf('w', w / sc.micro, 'um')
+#             pvalf('d', d / sc.micro, 'um')
+#             # pvalf('w / d', w / d)
+#             # pvalf('e_r', er)
+#             # pvalf('e_eff', self.ee)
+#             # pvalf('v_p', self.vp / sc.c, 'c')
+#             pvalf('Z0', self.z0, 'ohms')
+#             print("")
+#             # pvalf('par. plate Z0', parallel_plate_z0, 'ohms')
+#             # pvalf('finging fac.', (fringing_factor - 1.) * 100.)
+#             # print ""
+
+#     def impedance(self):
+#         """
+#         Find characteristic impedance of microstrip.
+
+#         :return: characteristic impedance
+#         """
+
+#         return self.z0
+
+#     # def wavelength(self, frequency):
+#     #     """
+#     #     Find wavelength of microstrip.
+
+#     #     :param float frequency: frequency (in Hz)
+#     #     :return: wavelength (in m)
+#     #     """
+
+#     #     return sc.c / frequency / np.sqrt(self.ee)
+
+
+# Microstrip -----------------------------------------------------------------
+
+class Microstrip:
+    """Class for a microstrip.
+
+    Args:
+        er (float): relative permittivity of the dielectric
+        d (float): thickness of the dielectric
+        w (float): width of the microstrip
+
+    """
+
+    def __init__(self, er, d, w, **kwargs):
+
+        verbose = kwargs.pop('verbose', True)
+        comment = kwargs.pop('comment', '')
+
+        self.er = er
+        self.d = d
+        self.w = w 
+
+        self.ee = _ee(er, d, w)
+        self.vp = sc.c / np.sqrt(self.ee)
+        self.z0 = find_microstrip_z0(er, d, w)
+
+        if verbose:
+            parallel_plate_z0 = d / w * Z0 / np.sqrt(self.ee)
+            fringing_factor = self.z0 / parallel_plate_z0
+            
+            header("\nMicrostrip {0}".format(comment))
+            pvalf('w', w / sc.micro, 'um')
+            pvalf('d', d / sc.micro, 'um')
+            pvalf('w / d', w / d)
+            print("")
+
+    def impedance(self):
+        """Calculate characteristic impedance.
+
+        Returns:
+            float: characteristic impedance
+
+        """
+
+        return self.z0
+
+    def wavelength(self, frequency):
+        """Calculate wavelength.
+
+        Args:
+            frequency (float): frequency
+
+        Returns:
+            float: wavelength
+
+        """
+
+        return sc.c / frequency / np.sqrt(self.ee)
+
+
+def find_microstrip_width(er, d, z0=50.):
+    """Calculate microstrip width required for a given characteristic 
+    impedance.
+
+    Args:
+        er (float): relative permittivity
+        d (float): thickness of the dielectric
+        z0 (float): desired characterisitic impedance
+
+    Returns:
+        float: width of microstrip
+
+    """
+
+    a = z0 / 60 * np.sqrt((er + 1) / 2) + (er - 1) / (er + 1) * (0.23 + 0.11 / er)
+    b = 377 * sc.pi / (2 * z0 * np.sqrt(er))
+
+    wd1 = 8 * np.exp(a) / (np.exp(2 * a) - 2)
+    wd2 = 2 / sc.pi * (b - 1 - np.log(2 * b - 1) + (er - 1) / (2 * er) * (np.log(b - 1) + 0.39 - 0.61 / er))
+
+    if wd1 < 2:
+        return wd1 * d
+    elif wd2 > 2:
+        return wd2 * d
+    else:
+        raise ValueError
+
+
+def find_microstrip_z0(er, d, w):
+    """Calculate characterisitic impedance.
+
+    Args:
+        er (float): relative permittivity of the dielectric
+        d (float): thickness of the dielectric
+        w (float): width of the microstrip
+
+    Returns:
+        float: characteristic impedance
+
+    """
+
+    ee = _ee(er, d, w)
+
+    if w / d <= 1:
+        return 60 / np.sqrt(ee) * np.log(8 * d / w + w / 4 / d)
+    else:
+        return 120 * sc.pi / (np.sqrt(ee) * \
+               (w / d + 1.393 + 0.667 * np.log(w / d + 1.444)))
+
+
+def _ee(er, d, w):
+    """Effective dielectric permittivity."""
+
+    return (er + 1) / 2 + (er - 1) / 2 / np.sqrt(1 + 12 * d / w)

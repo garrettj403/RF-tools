@@ -1,5 +1,23 @@
 """Utilities for the RF-tools package."""
 
+import numpy as np 
+import scipy.constants as sc 
+
+
+# Conversions ----------------------------------------------------------------
+
+def dbm_to_w(dbm):
+    """Convert dBm to W."""
+
+    return 10 ** (dbm / 10.) * sc.milli
+
+
+def w_to_dbm(w):
+    """Convert W to dBm."""
+
+    return 10 * np.log10(w / sc.milli)
+    
+
 # Functions for printing to terminal -----------------------------------------
 
 def pvalf(name, val, units='', comment=''):

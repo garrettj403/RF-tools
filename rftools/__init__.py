@@ -1,2 +1,2 @@
 
-from rftools.tlines import RectangularWaveguide
+from rftools.tlines import RectangularWaveguide, CircularWaveguide

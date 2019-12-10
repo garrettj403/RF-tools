@@ -1,0 +1,44 @@
+"""Utilities for the RF-tools package."""
+
+# Functions for printing to terminal -----------------------------------------
+
+def pvalf(name, val, units='', comment=''):
+    """Print name, value as float, and units to terminal.
+
+    Args:
+        name (str): variable name
+        val (float): variable value
+        units (str): variable units (optional)
+        comment (str): comment (optional)
+
+    """
+
+    if units != '':
+        units = '\t[' + units + ']'
+    if comment != '':
+        comment = "  # {0}".format(comment)
+
+    if isinstance(val, complex):
+        re = val.real
+        im = val.imag
+        if val.imag < 0:
+            str_tmp = "\t{0:15s} = {1:8.3f} - j{2:7.3f}{3:15s}{4}"
+        else:
+            str_tmp = "\t{0:15s} = {1:8.3f} + j{2:7.3f}{3:15s}{4}"
+        print((str_tmp.format(name, re, abs(im), units, comment)))
+
+    else:
+        str_tmp = "\t{0:15s} = {1:7.3f}\t{2:15s}{3}"
+        print((str_tmp.format(name, val, units, comment)))
+
+
+def header(header_string):
+    """Print a nice header to the terminal.
+
+    Args:
+        header_string (str): Header title to print
+
+    """
+
+    print(("\t" + header_string))
+    print(("\t" + "-" * 50))

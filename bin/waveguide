@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""Rectangular waveguide tool."""
+
+import argparse
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.constants as sc
+
+from rftools import RectangularWaveguide as Waveguide
+from rftools.util import pvalf
+
+# Grab arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("type", type=str, nargs='+', help="Waveguide size, e.g., WR4.3")
+args = parser.parse_args()
+
+# Get dimensions
+assert args.type[0][:2] == "WR", "Waveguide size must start with WR"
+a = float(args.type[0][2:]) * 10 * sc.mil
+
+# Build waveguide
+print("")
+wg = Waveguide(a, a/2, comment=args.type[0])
+
+# Cutoff frequency
+pvalf('cutoff TE10', wg.cutoff(1, 0) / sc.giga, 'GHz')
+pvalf('cutoff TE20', wg.cutoff(2, 0) / sc.giga, 'GHz')
+
+# Center frequency
+freq = wg.cutoff(1, 0) * 1.5
+print(("\n\t-> at {0} GHz (center frequency)".format(round(freq / sc.giga, 1))))
+pvalf('wavelength', wg.wavelength(freq, 1, 0) / sc.milli, 'mm')
+pvalf('impedance', wg.impedance(freq, 1, 0), 'ohms')
+print("")

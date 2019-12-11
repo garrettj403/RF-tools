@@ -36,8 +36,8 @@ class RectangularWaveguide:
         comment = kwargs.pop('comment', '')
 
         # Waveguide dimensions
-        self.a = a
-        self.b = b
+        self.a = a  # broad
+        self.b = b  # narrow
 
         # Dielectric fill
         self.er = er 
@@ -57,6 +57,7 @@ class RectangularWaveguide:
             pvalf('b', b / sc.milli, 'mm')
             print("")
             pvalf('low freq.', self.f1 / sc.giga, 'GHz')
+            pvalf('mid freq.', self.fmid / sc.giga, 'GHz')
             pvalf('high freq.', self.f2 / sc.giga, 'GHz')
             print("")
 
@@ -96,17 +97,21 @@ class RectangularWaveguide:
 
         """
 
-        assert mode[0:2].lower() == 'te' or mode[0:2].lower() == 'tm', \
-            "mode must be either TE or TM"
         m, n = int(mode[2]), int(mode[3])
 
-        fs_wavelength = sc.c / np.sqrt(self.er * self.ur) / frequency
-        k = 2 * np.pi / fs_wavelength
+        nabla = Z0 * np.sqrt(self.ur / self.er)
+
+        k = 2 * np.pi * frequency / sc.c * np.sqrt(self.er * self.ur)
         kc = np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
         beta = np.sqrt(k**2 - kc**2)
-        z_te = k * Z0 / beta
 
-        return z_te
+        if mode[0:2].lower() == 'te':
+            return k * nabla / beta
+        elif mode[0:2].lower() == 'tm':
+            return beta * nabla / k
+        else:
+            print("mode must be either TE or TM")
+            raise
 
     def cutoff(self, mode='TE10'):
         """Calculate cutoff frequency for mode (m,n).
@@ -125,7 +130,7 @@ class RectangularWaveguide:
         m, n = int(mode[2]), int(mode[3])
 
         kc = np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
-        fc = sc.c / np.sqrt(self.er * self.ur) / (2 * np.pi) * kc
+        fc = sc.c / np.sqrt(2 * np.pi * self.er * self.ur) * kc
 
         return fc 
 

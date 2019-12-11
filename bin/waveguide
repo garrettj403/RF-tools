@@ -39,7 +39,7 @@ pvalf('cutoff TE/TM11', wg.cutoff('TE11') / sc.giga, 'GHz')
 
 # Analyze frequency
 if args.freq is None:
-    freq = wg.cutoff(args.mode) * 1.5
+    freq = wg.fmid
 else:
     freq = float(args.freq) * sc.giga
 print(("\n\t-> at {0} GHz".format(round(freq / sc.giga, 1))))

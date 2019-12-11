@@ -22,15 +22,24 @@ class RectangularWaveguide:
         a (float): dimension a
         b (float): dimension b
 
+    Keyword Args:
+        er (float): relative permittivity
+        ur (float): relative permeability
+        verbose (bool): verbosity
+        comment (str): comment to describe waveguide
+
     """
 
-    def __init__(self, a, b, **kwargs):
+    def __init__(self, a, b, er=1, ur=1, **kwargs):
 
         verbose = kwargs.pop('verbose', True)
         comment = kwargs.pop('comment', '')
 
         self.a = a
         self.b = b
+
+        self.er = er 
+        self.ur = ur
 
         if verbose:
             header("Rectangular Waveguide: {0}".format(comment))
@@ -50,11 +59,11 @@ class RectangularWaveguide:
 
         """
 
-        assert mode[0:2] == 'TE' or mode[0:2] == 'TM', \
+        assert mode[0:2].lower() == 'te' or mode[0:2].lower() == 'tm', \
             "mode must be either TE or TM"
         m, n = int(mode[2]), int(mode[3])
 
-        fs_wavelength = sc.c / frequency
+        fs_wavelength = sc.c / np.sqrt(self.er * self.ur) / frequency
         k = 2 * np.pi / fs_wavelength
         kc = np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
         beta = np.sqrt(k**2 - kc**2)
@@ -74,11 +83,11 @@ class RectangularWaveguide:
 
         """
 
-        assert mode[0:2] == 'TE' or mode[0:2] == 'TM', \
+        assert mode[0:2].lower() == 'te' or mode[0:2].lower() == 'tm', \
             "mode must be either TE or TM"
         m, n = int(mode[2]), int(mode[3])
 
-        fs_wavelength = sc.c / frequency
+        fs_wavelength = sc.c / np.sqrt(self.er * self.ur) / frequency
         k = 2 * np.pi / fs_wavelength
         kc = np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
         beta = np.sqrt(k**2 - kc**2)
@@ -98,12 +107,12 @@ class RectangularWaveguide:
 
         """
 
-        assert mode[0:2] == 'TE' or mode[0:2] == 'TM', \
+        assert mode[0:2].lower() == 'te' or mode[0:2].lower() == 'tm', \
             "mode must be either TE or TM"
         m, n = int(mode[2]), int(mode[3])
 
         kc = np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
-        fc = sc.c / (2 * np.pi) * kc
+        fc = sc.c / np.sqrt(self.er * self.ur) / (2 * np.pi) * kc
 
         return fc 
 
@@ -114,16 +123,25 @@ class CircularWaveguide:
     Args:
         a (float): inner radius a
 
+    Keyword Args:
+        er (float): relative permittivity
+        ur (float): relative permeability
+        verbose (bool): verbosity
+        comment (str): comment to describe waveguide
+
     """
 
     # TODO: add impedance 
 
-    def __init__(self, a, **kwargs):
+    def __init__(self, a, er=1, ur=1, **kwargs):
 
         verbose = kwargs.pop('verbose', True)
         comment = kwargs.pop('comment', '')
 
         self.a = a
+
+        self.er = er 
+        self.ur = ur
 
         if verbose:
             header("Circular Waveguide: {0}".format(comment))
@@ -154,17 +172,17 @@ class CircularWaveguide:
 
         """
 
-        assert mode[0:2] == 'TE' or mode[0:2] == 'TM', \
-            "mode must be either TE or TM"
-
-        if mode[0:2] == 'TE':
+        if mode[0:2].lower() == 'te':
             p_temp = self._pp 
-        else:
+        elif mode[0:2].lower() == 'tm':
             p_temp = self._p
+        else:
+            print("Error: mode must be either TE or TM")
+            raise
 
         p_coeff = p_temp[int(mode[2:3]), int(mode[3:4])]
 
-        k = 2 * np.pi * frequency * np.sqrt(sc.mu_0 * sc.epsilon_0)
+        k = 2 * np.pi * sc.c * frequency * np.sqrt(self.er * self.ur)
         kc = p_coeff / self.a
         beta = np.sqrt(k**2 - kc**2)
         wavelength_guided = 2 * np.pi / beta
@@ -182,17 +200,17 @@ class CircularWaveguide:
 
         """
 
-        assert mode[0:2] == 'TE' or mode[0:2] == 'TM', \
-            "mode must be either TE or TM"
-
-        if mode[0:2] == 'TE':
+        if mode[0:2].lower() == 'te':
             p_temp = self._pp 
-        else:
+        elif mode[0:2].lower() == 'tm':
             p_temp = self._p
+        else:
+            print("Error: mode must be either TE or TM")
+            raise
 
         p_coeff = p_temp[int(mode[2:3]), int(mode[3:4])]
 
-        return p_coeff * sc.c / (2 * np.pi * self.a)
+        return p_coeff * sc.c / np.sqrt(self.er * self.ur) / (2 * np.pi * self.a)
 
 
 # class ParallelPlateWaveguide:

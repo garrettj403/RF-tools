@@ -24,8 +24,11 @@ parser.add_argument('-pw', '--plotw', action="store_true", help="Plot wavelength
 args = parser.parse_args()
 
 # Get dimensions
-assert args.type[0][:2] == "WR", "Waveguide size must start with WR"
-a = float(args.type[0][2:]) * 10 * sc.mil
+assert args.type[0][:2].lower() == "wr", "Waveguide size must start with WR"
+if args.type[0][2] == "-":
+    a = float(args.type[0][3:]) * 10 * sc.mil
+else:
+    a = float(args.type[0][2:]) * 10 * sc.mil
 
 # Build waveguide
 print("")

@@ -16,7 +16,7 @@ np.seterr(invalid='ignore')
 
 # Grab arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("type", type=str, nargs='+', help="Waveguide size, e.g., WR4.3")
+parser.add_argument("type", type=str, nargs=1, help="Waveguide size, e.g., WR4.3")
 parser.add_argument('-f', '--freq', help="Frequency to analyze (in GHz)", default=None)
 parser.add_argument('-m', '--mode', help="Frequency to analyze (in GHz)", default='TE10')
 parser.add_argument('-pz', '--plotz', action="store_true", help="Plot impedance")

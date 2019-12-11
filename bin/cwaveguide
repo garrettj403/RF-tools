@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""Circular waveguide tool."""
+
+import argparse
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.constants as sc
+
+from rftools import CircularWaveguide as Waveguide
+from rftools.util import pvalf
+
+np.seterr(invalid='ignore')
+
+# Grab arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("a", type=str, nargs=1, help="Waveguide diameter in [mm]")
+parser.add_argument('-f', '--freq', help="Frequency to analyze (in GHz)", default=None)
+parser.add_argument('-m', '--mode', help="Frequency to analyze (in GHz)", default='TE10')
+# parser.add_argument('-pz', '--plotz', action="store_true", help="Plot impedance")
+# parser.add_argument('-pw', '--plotw', action="store_true", help="Plot wavelength")
+args = parser.parse_args()
+
+# Get dimensions
+a = float(args.a[0]) * sc.milli
+
+# Build waveguide
+print("")
+wg = Waveguide(a)
+
+# Cutoff frequency
+pvalf('cutoff TE11   ', wg.cutoff('TE11') / sc.giga, 'GHz')
+pvalf('cutoff TM01   ', wg.cutoff('TM01') / sc.giga, 'GHz')
+pvalf('cutoff TE21   ', wg.cutoff('TE21') / sc.giga, 'GHz')
+pvalf('cutoff TE01   ', wg.cutoff('TE01') / sc.giga, 'GHz')
+pvalf('cutoff TM11   ', wg.cutoff('TM11') / sc.giga, 'GHz')
+print("")
+
+# # Analyze frequency
+# if args.freq is None:
+#     freq = wg.cutoff(args.mode) * 1.5
+# else:
+#     freq = float(args.freq) * sc.giga
+# print(("\n\t-> at {0} GHz".format(round(freq / sc.giga, 1))))
+# pvalf('wavelength', wg.wavelength(freq, args.mode) / sc.milli, 'mm')
+# pvalf('impedance', wg.impedance(freq, args.mode), 'ohms')
+# print("")
+
+# # Plot characteristic impedance
+# if args.plotz:
+#     f_cutoff = wg.cutoff(args.mode)
+
+#     f = np.linspace(0.8 * f_cutoff, 2.1 * f_cutoff, 300)
+
+#     plt.figure()
+#     plt.plot(f / sc.giga, wg.impedance(f, args.mode))
+#     plt.xlabel(r'Frequency (GHz)')
+#     plt.ylabel(r'Characteristic impedance ($\Omega$)')
+#     plt.title('Impedance of a {} waveguide ({} mode)'.format(args.type[0], args.mode))
+
+# # Plot wavelength
+# if args.plotw:
+#     f_cutoff = wg.cutoff(args.mode)
+
+#     f = np.linspace(0.8 * f_cutoff, 2.1 * f_cutoff, 300)
+
+#     plt.figure()
+#     plt.plot(f / sc.giga, wg.wavelength(f, args.mode) * 1e3)
+#     plt.xlabel(r'Frequency (GHz)')
+#     plt.ylabel(r'Wavelength (mm)')
+#     plt.title('Wavelength inside a {} waveguide ({} mode)'.format(args.type[0], args.mode))
+
+# if args.plotz or args.plotw:
+#     plt.show()

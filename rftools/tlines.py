@@ -19,8 +19,8 @@ class RectangularWaveguide:
     """Class for a rectangular waveguide.
     
     Args:
-        a (float): dimension a
-        b (float): dimension b
+        a (float): dimension a (broad wall width) in [m]
+        b (float): dimension b (narrow wall width) in [m]
 
     Keyword Args:
         er (float): relative permittivity
@@ -35,27 +35,40 @@ class RectangularWaveguide:
         verbose = kwargs.pop('verbose', True)
         comment = kwargs.pop('comment', '')
 
+        # Waveguide dimensions
         self.a = a
         self.b = b
 
+        # Dielectric fill
         self.er = er 
         self.ur = ur
+
+        # Cutoff frequency
+        self.fc = sc.c / np.sqrt(self.er * self.ur) / 2 / self.a
+
+        # Frequency range
+        self.f1 = 1.25 * self.fc
+        self.f2 = 1.89 * self.fc
+        self.fmid = (self.f1 + self.f2) / 2
 
         if verbose:
             header("Rectangular Waveguide: {0}".format(comment))
             pvalf('a', a / sc.milli, 'mm')
             pvalf('b', b / sc.milli, 'mm')
             print("")
+            pvalf('low freq.', self.f1 / sc.giga, 'GHz')
+            pvalf('high freq.', self.f2 / sc.giga, 'GHz')
+            print("")
 
-    def wavelength(self, frequency, mode):
+    def wavelength(self, frequency, mode='TE10'):
         """Calculate guided wavelength.
 
         Args:
-            frequency (float): frequency in units Hz
-            mode (str): waveguide mode
+            frequency (float): frequency in [Hz]
+            mode (str): waveguide mode, e.g., 'TE10'
 
         Returns:
-            float: guided wavelength
+            float: guided wavelength in [m]
 
         """
 
@@ -71,15 +84,15 @@ class RectangularWaveguide:
 
         return wavelength_g.real
 
-    def impedance(self, frequency, mode):
+    def impedance(self, frequency, mode='TE10'):
         """Calculate characteristic impedance.
 
         Args:
-            frequency (float): frequency in units Hz
-            mode (str): waveguide mode
+            frequency (float): frequency in [Hz]
+            mode (str): waveguide mode, e.g., 'TE10'
 
         Returns:
-            float: characteristic impedance
+            float: characteristic impedance in [ohm]
 
         """
 
@@ -95,15 +108,15 @@ class RectangularWaveguide:
 
         return z_te
 
-    def cutoff(self, mode):
+    def cutoff(self, mode='TE10'):
         """Calculate cutoff frequency for mode (m,n).
 
         Args:
-            frequency (float): frequency in units Hz
-            mode (str): waveguide mode
+            frequency (float): frequency, in [Hz]
+            mode (str): waveguide mode, e.g., 'TE10'
 
         Returns:
-            float: cutoff frequency
+            float: cutoff frequency, in [Hz]
 
         """
 
@@ -121,7 +134,7 @@ class CircularWaveguide:
     """Class for a circular waveguide.
 
     Args:
-        a (float): inner radius a
+        a (float): inner radius 'a'
 
     Keyword Args:
         er (float): relative permittivity
@@ -283,8 +296,8 @@ class Microstrip:
 
     Args:
         er (float): relative permittivity of the dielectric
-        d (float): thickness of the dielectric
-        w (float): width of the microstrip
+        d (float): thickness of the dielectric in [m]
+        w (float): width of the microstrip in [m]
 
     """
 
@@ -315,7 +328,7 @@ class Microstrip:
         """Calculate characteristic impedance.
 
         Returns:
-            float: characteristic impedance
+            float: characteristic impedance in [ohm]
 
         """
 
@@ -325,10 +338,10 @@ class Microstrip:
         """Calculate wavelength.
 
         Args:
-            frequency (float): frequency
+            frequency (float): frequency in [Hz]
 
         Returns:
-            float: wavelength
+            float: wavelength in [m]
 
         """
 
@@ -341,17 +354,18 @@ def find_microstrip_width(er, d, z0=50.):
 
     Args:
         er (float): relative permittivity
-        d (float): thickness of the dielectric
-        z0 (float): desired characterisitic impedance
+        d (float): thickness of the dielectric in [m]
+        z0 (float): desired characterisitic impedance in [ohm]
 
     Returns:
-        float: width of microstrip
+        float: width of microstrip in [m]
 
     """
 
     a = z0 / 60 * np.sqrt((er + 1) / 2) + (er - 1) / (er + 1) * (0.23 + 0.11 / er)
     b = 377 * sc.pi / (2 * z0 * np.sqrt(er))
 
+    # Eqn. 3.197 in Pozar
     wd1 = 8 * np.exp(a) / (np.exp(2 * a) - 2)
     wd2 = 2 / sc.pi * (b - 1 - np.log(2 * b - 1) + (er - 1) / (2 * er) * (np.log(b - 1) + 0.39 - 0.61 / er))
 
@@ -368,16 +382,17 @@ def find_microstrip_z0(er, d, w):
 
     Args:
         er (float): relative permittivity of the dielectric
-        d (float): thickness of the dielectric
-        w (float): width of the microstrip
+        d (float): thickness of the dielectric in [m]
+        w (float): width of the microstrip in [m]
 
     Returns:
-        float: characteristic impedance
+        float: characteristic impedance in [ohm]
 
     """
 
     ee = _ee(er, d, w)
 
+    # Eqn. 3.196 in Pozar
     if w / d <= 1:
         return 60 / np.sqrt(ee) * np.log(8 * d / w + w / 4 / d)
     else:
@@ -386,6 +401,18 @@ def find_microstrip_z0(er, d, w):
 
 
 def _ee(er, d, w):
-    """Effective dielectric permittivity."""
+    """Effective dielectric permittivity.
+
+    Eqn. 3.195 in Pozar.
+
+    Args:
+        er (float): relative permittivity of the dielectric
+        d (float): thickness of the dielectric in [m]
+        w (float): width of the microstrip in [m]
+
+    Returns:
+        float: effective permittivity
+
+    """
 
     return (er + 1) / 2 + (er - 1) / 2 / np.sqrt(1 + 12 * d / w)

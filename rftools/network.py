@@ -14,7 +14,7 @@ class Network(object):
         filename (str): Touchstone file to load
 
     Keyword Args:
-        comment (str): comment to describe instance
+        comment (str): comment to describe this specific instance
 
     """
 
@@ -35,6 +35,7 @@ class Network(object):
     def __str__(self):
 
         msg = '<Network: {} ports, {} points, {}>'
+
         return msg.format(self.count_ports(), self.count_points(), self.ports)
 
     def __repr__(self):
@@ -42,7 +43,15 @@ class Network(object):
         return self.__str__()
 
     def __mul__(self, network2):
-        """Cascade S-parameter matrices."""
+        """Cascade S-parameter matrices.
+
+        Args:
+            network2 (rftools.network.Network): second network
+
+        Returns:
+            rftools.network.Network: cascaded network
+
+        """
 
         network1 = self.copy()
 
@@ -116,20 +125,32 @@ class Network(object):
         return copy(self)
 
     def count_ports(self):
+        """Count number of ports.
+
+        Returns:
+            int: number of ports
+
+        """
 
         return self.s.shape[0]
 
     def count_points(self):
+        """Count number of frequency points.
+
+        Returns:
+            int: number of frequency points
+
+        """
 
         return self.s.shape[2]
 
     def check_ports(self):
+        """Check S-parameter matrix."""
 
         sn, sm, _ = self.s.shape
-        assert sn == sm, \
-            "S-parameters not square."
-        nports = sn 
-
+        assert sn == sm, "S-parameters not square."
+        
+        nports = sn
         assert nports == self.z0.shape[0]
 
         assert len(self.ports) == nports
@@ -145,35 +166,44 @@ class Network(object):
         return self.count_ports() == 2
 
     def _is_normalised(self):
+        """Is it normalized to 50 ohms?"""
 
         return np.array_equal(self.z0, np.ones_like(self.z0)*50.)
 
     def is_reciprocal(self):
+        """Does S21 equal S12?"""
 
         return np.allclose(self.s[0, 1], self.s[1, 0])
 
     def is_symmetrical(self):
+        """Does S11 equal S22?"""
         
         return np.allclose(self.s[0, 0], self.s[1, 1])
 
+    def is_lossless(self):
+        """Is the matrix lossless?"""
+
+        return np.allclose(np.abs(self.s[0, 0])**2 + np.abs(self.s[0, 1])**2, np.ones_like(self.f))
+
     def is_lossless_reciprocal(self):
+        """Is the matrix lossless and reciprocal?"""
 
-        test1 = np.allclose(np.abs(self.s[0, 0]), np.abs(self.s[1, 1]))
-        test2 = np.allclose(np.abs(self.s[0, 0])**2 + np.abs(self.s[0, 1])**2, np.ones_like(self.f))
-
-        return test1 & test2
+        return self.is_reciprocal() & self.is_lossless()
 
     ### Get other parameters ###
 
     def tparam(self):
+        """Return T-parameters."""
 
         return s_to_tparam(self.s)
 
     def zparam(self):
+        """Return Z-parameters."""
 
         return s_to_zparam(self.s, self.z0)
 
     def sparam_db(self):
+        """Return S-parameter matrix in [dB]."""
 
         with np.errstate(divide='ignore'):
             s_db = 20*np.log10(np.abs(self.s))
@@ -212,7 +242,16 @@ class Network(object):
 
     ### Manipulate ports ###
 
-    def port_number(self, port_name):
+    def get_port_number(self, port_name):
+        """Get port number from port name.
+
+        Args:
+            port_name (str): port name
+
+        Returns:
+            int: port number
+
+        """
 
         for i in range(len(self.ports)):
             if self.ports[i] == port_name:
@@ -220,8 +259,16 @@ class Network(object):
         raise ValueError
 
     def delete_port(self, port):
+        """Delete port.
 
-        port_num = self.port_number(port)
+        Assumes that the port is matched, i.e., that it can be simply deleted.
+
+        Args:
+            port (str): port name
+
+        """
+
+        port_num = self.get_port_number(port)
 
         mask = np.arange(len(self.ports)) != port_num
         s = self.s[mask]
@@ -233,6 +280,13 @@ class Network(object):
         self.ports = tuple(ports)
 
     def rename_port(self, old_name, new_name):
+        """Rename port.
+
+        Args:
+            old_name (str): old port name
+            new_name (str): new port name
+
+        """
 
         ports = list(self.ports)
 
@@ -246,6 +300,11 @@ class Network(object):
         self.ports = tuple(new_ports)
 
     def flip_ports(self):
+        """Flip ports.
+
+        Only for two port networks.
+
+        """
 
         npts = self.count_points()
         assert self._is_2port()
@@ -265,7 +324,14 @@ class Network(object):
 
     ### Truncate data ###
 
-    def freq_range(self, fmin, fmax):
+    def truncate_frequency(self, fmin, fmax):
+        """Truncate frequency range.
+
+        Args:
+            fmin (float): lower frequency
+            fmax (float): upper frequency
+
+        """
 
         mask = (fmin <= self.f) & (self.f <= fmax)
 
@@ -275,19 +341,41 @@ class Network(object):
 
     ### Get property from given port name ### 
 
-    def get_s(self, porta, portb):
+    def get_s(self, port1, port2):
+        """Get specified S-parameters.
 
-        a = self.port_number(porta)
-        b = self.port_number(portb)
+        Args:
+            port1: port 1
+            port2: port 2
 
-        return self.s[a, b]
+        Returns:
+            ndarray: S-parameters
 
-    def get_s_db(self, porta, portb, sigma=None):
+        """
 
-        a = self.port_number(porta)
-        b = self.port_number(portb)
+        if not isinstance(port1, int) and not isinstance(port2, int):
+            port1 = self.get_port_number(port1)
+            port2 = self.get_port_number(port2)
 
-        s_db = self.sparam_db()[a, b]
+        return self.s[port1, port2]
+
+    def get_s_db(self, port1, port2, sigma=None):
+        """Get specified S-parameters in [dB].
+
+        Args:
+            port1: port 1
+            port2: port 2
+
+        Returns:
+            ndarray: S-parameters in dB
+
+        """
+
+        if not isinstance(port1, int) and not isinstance(port2, int):
+            port1 = self.get_port_number(port1)
+            port2 = self.get_port_number(port2)
+
+        s_db = self.sparam_db()[port1, port2]
 
         if sigma is not None:
             sigma = sigma / (self.f[1] - self.f[0])
@@ -295,12 +383,23 @@ class Network(object):
 
         return s_db 
 
-    def get_s_mag(self, porta, portb, sigma=None):
+    def get_s_mag(self, port1, port2, sigma=None):
+        """Get specified S-parameters (mag).
 
-        a = self.port_number(porta)
-        b = self.port_number(portb)
+        Args:
+            port1: port 1
+            port2: port 2
 
-        s_mag = np.abs(self.s[a, b])
+        Returns:
+            ndarray: S-parameter magnitude
+
+        """
+
+        if not isinstance(port1, int) and not isinstance(port2, int):
+            port1 = self.get_port_number(port1)
+            port2 = self.get_port_number(port2)
+
+        s_mag = np.abs(self.s[port1, port2])
 
         if sigma is not None:
             sigma = sigma / (self.f[1] - self.f[0])
@@ -308,42 +407,81 @@ class Network(object):
 
         return s_mag
 
-    def get_p_mag(self, porta, portb, sigma=None):
+    def get_p_mag(self, port1, port2, sigma=None):
+        """Get specified power magnitude.
 
-        a = self.port_number(porta)
-        b = self.port_number(portb)
+        Args:
+            port1: port 1
+            port2: port 2
 
-        s_mag = np.abs(self.s[a, b])
+        Returns:
+            ndarray: power magnitude
 
-        if sigma is not None:
-            sigma = sigma / (self.f[1] - self.f[0])
-            s_mag = _gauss_conv(s_mag, sigma)
+        """
 
-        return s_mag**2
+        if not isinstance(port1, int) and not isinstance(port2, int):
+            port1 = self.get_port_number(port1)
+            port2 = self.get_port_number(port2)
 
-    def get_gain(self, porta, portb, sigma=None):
-
-        a = self.port_number(porta)
-        b = self.port_number(portb)
-
-        s_mag = np.abs(self.s[a, b])
+        s_mag = np.abs(self.s[port1, port2])
 
         if sigma is not None:
             sigma = sigma / (self.f[1] - self.f[0])
             s_mag = _gauss_conv(s_mag, sigma)
 
         return s_mag**2
+
+    def get_gain(self, port1, port2, sigma=None):
+        """Get gain.
+
+        Args:
+            port1: port 1
+            port2: port 2
+
+        Keyword Args:
+            sigma: width of filter (set to None for no filtering)
+
+        Returns:
+            ndarray: gain
+
+        """
+
+        return self.get_p_mag(port1, port2, sigma)
 
     def get_z0(self, port):
+        """Get characteristic / port impedance.
 
-        a = self.port_number(port)
+        Args:
+            port: port
 
-        return self.z0[a]
+        Returns:
+            ndarray: characteristic / port impedance
+
+        """
+
+        if not isinstance(port, int):
+            port = self.get_port_number(port)
+
+        return self.z0[port]
 
     def get_zin(self, port, sigma=None):
+        """Get input impedance.
+
+        Args:
+            port: port
+
+        Keyword Args:
+            sigma: width of filter (set to None for no filtering)
+
+        Returns:
+            ndarray: input impedance
+
+        """
         
-        a = self.port_number(port)
-        zin = (1 + self.s[a, a]) / (1 - self.s[a, a]) * self.z0[a]
+        if not isinstance(port, int):
+            port = self.get_port_number(port)
+
+        zin = (1 + self.s[port, port]) / (1 - self.s[port, port]) * self.z0[port]
 
         if sigma is not None:
             sigma = sigma / (self.f[1] - self.f[0])
@@ -356,9 +494,24 @@ class Network(object):
     ### Get value at a certain frequency ###
 
     def get_zin_at_f(self, f, port, sigma=None):
+        """Get input impedance at specified frequency.
+
+        Args:
+            f: frequency
+            port: port
+
+        Keyword Args:
+            sigma: width of filter (set to None for no filtering)
+
+        Returns:
+            ndarray: input impedance
+
+        """
         
-        a = self.port_number(port)
-        zin = (1 + self.s[a, a]) / (1 - self.s[a, a]) * self.z0[a]
+        if not isinstance(port, int):
+            port = self.get_port_number(port)
+
+        zin = (1 + self.s[port, port]) / (1 - self.s[port, port]) * self.z0[port]
 
         if sigma is not None:
             sigma = sigma / (self.f[1] - self.f[0])
@@ -369,31 +522,78 @@ class Network(object):
         return np.interp(f, self.f, zin)
 
     def get_z0_at_f(self, f, port):
+        """Get characteristic impedance at specified frequency.
+
+        Args:
+            f: frequency
+            port: port
+
+        Returns:
+            ndarray: characteristic impedance
+
+        """
         
-        a = self.port_number(port)
-        z0 = self.z0[a]
+        if not isinstance(port, int):
+            port = self.get_port_number(port)
+
+        z0 = self.z0[port]
 
         return np.interp(f, self.f, z0)
 
-    def get_s_mag_at_f(self, f, porta, portb, sigma=None):
+    def get_s_mag_at_f(self, f, port1, port2, sigma=None):
+        """Get S-parameter at specified frequency.
 
-        s_mag = self.get_s_mag(porta, portb, sigma=None)
+        Args:
+            f: frequency
+            port1: port 1
+            port2: port 2
+
+        Keyword Args:
+            sigma: width of filter (set to None for no filtering)
+
+        Returns:
+            ndarray: S-parameter magnitude
+
+        """
+
+        s_mag = self.get_s_mag(port1, port2, sigma=None)
 
         return np.interp(f, self.f, s_mag)
 
-    def get_gain_at_f(self, f, porta=None, portb=None, sigma=None):
+    def get_gain_at_f(self, f, port1=None, port2=None, sigma=None):
+        """Get gain at specified frequency.
 
-        if porta is None or portb is None:
-            porta = self.ports[1]
-            portb = self.ports[0]
+        Args:
+            f: frequency
+            port1: port 1
+            port2: port 2
 
-        il = self.get_s_mag(porta, portb, sigma=None)
+        Keyword Args:
+            sigma: width of filter (set to None for no filtering)
+
+        Returns:
+            ndarray: gain
+            
+        """
+
+        if port1 is None or port2 is None:
+            port1 = self.ports[1]
+            port2 = self.ports[0]
+
+        il = self.get_s_mag(port1, port2, sigma=None)
 
         return np.interp(f, self.f, il)**2
 
     ### Plot network properties ###
 
     def plot_sparam(self, filename=None, ax=None, **params):
+        """Plot S-parameters.
+
+        Keyword Args:
+            filename: figure file name
+            ax: matplotlib axis to use
+
+        """
 
         if ax is None:
             fig, ax = plt.subplots()
@@ -419,6 +619,16 @@ class Network(object):
             return ax
 
     def plot_zin(self, port, filename=None, ax=None, **params):
+        """Plot input impedance.
+
+        Args:
+            port: port to plot
+
+        Keyword Args:
+            filename: figure file name
+            ax: matplotlib axis to use
+
+        """
     
         if ax is None:
             fig, ax = plt.subplots()
@@ -441,6 +651,13 @@ class Network(object):
             return ax
 
     def plot(self, filename=None, ax=None, **params):
+        """Plot S-parameters.
+
+        Keyword Args:
+            filename: figure file name
+            ax: matplotlib axis to use
+
+        """
 
         return self.plot_sparam(filename, ax=None, **params)
 
@@ -448,7 +665,21 @@ class Network(object):
 # Read touchstone ------------------------------------------------------------
 
 def _read_touchstone(filename, max_size=10000, z0=None):
-    """Read touchstone from HFSS."""
+    """Read Touchstone file.
+
+    Only tested with Touchstone files from HFSS.
+
+    Args:
+        filename: file to import
+
+    Keyword Args:
+        max_size (int): maximum number of lines to read
+        z0 (ndarray): characteristic impedance
+
+    Returns:
+        tuple: frequency, S-parameters, characterisitc impedance, ports
+
+    """
 
     with open(filename, 'r') as fin:
         data = fin.readlines()
@@ -460,22 +691,7 @@ def _read_touchstone(filename, max_size=10000, z0=None):
     header = data[:i]
     data = data[i:]
 
-    # # Get data type
-    # assert data[0] == '# GHZ S MA\n', "Only GHz, S, MA supported"
-    # data = data[1:]
-
-    # # Divide between header and data
-    # for i, line in enumerate(data[:10]):
-    #     if line[:1] != '!' and line[:1] != '#':
-    #         break
-
-    # header = data[:i]
-    
-    # # # Check if normalised
-    # # print header[0].split()[-2:]
-
-    # data = data[i+1:]
-
+    # Strip trailing spaces / newlines
     for i in range(len(header)):
         header[i] = header[i].rstrip()
     for i in range(len(data)):
@@ -483,7 +699,7 @@ def _read_touchstone(filename, max_size=10000, z0=None):
 
     # READ HEADER ------------------------------------------------------------
 
-    # Get ports
+    # Get port names
     ports = []
     for line in header:
         if 'Port[' in line:
@@ -492,7 +708,6 @@ def _read_touchstone(filename, max_size=10000, z0=None):
             ports.append(port_name)
     ports = tuple(ports)
     nports = len(ports) 
-    # print(nports)
 
     # Initialize S-parameters
     f = np.zeros(max_size, dtype=float)
@@ -558,6 +773,8 @@ def _read_touchstone(filename, max_size=10000, z0=None):
 # Helper functions -----------------------------------------------------------
 
 def _is_float(entry):
+    """Is float?"""
+
     try:
         float(entry)
         return True
@@ -566,6 +783,7 @@ def _is_float(entry):
 
 
 def _deg_to_rad(deg):
+    """Degrees to radians."""
 
     return deg * np.pi / 180.   
 
@@ -573,13 +791,12 @@ def _deg_to_rad(deg):
 # Filters -------------------------------------------------------------------
 
 def _gauss_conv(x, sigma=10, ext_x=3):
-    """Gaussian convolution filter
+    """Gaussian convolution filter.
 
     Args:
         x (ndarray): noisy data
         sigma (float): standard deviation of Gaussian curve
-        ext_x (float): Gaussian curve will extend from ext_x * sigma in each
-                       direction
+        ext_x (float): extend Gaussian in each direction by ext_x * sigma
 
     Returns:
         ndarray: filtered data
@@ -604,7 +821,7 @@ def _gauss(sigma, n_sigma=3):
     """Discrete, normalized Gaussian centered on zero. Used for filtering data.
 
     Args:
-        sigma (float): standard deviation
+        sigma (float): standard deviation of Gaussian
         n_sigma (float): extend x in each direction by ext_x * sigma
 
     Returns:
@@ -624,35 +841,30 @@ def _gauss(sigma, n_sigma=3):
 
 if __name__ == "__main__":
     
-    network = Network('../workbooks/data//simple-waveguide.s2p')
+    data = Network('../workbooks/data/simple-waveguide.s2p')
 
-    # data = Network('../tests/data/hfss-sparam.s3p')
-    # print(data) 
-    # print('No. ports: ', data.count_ports())
-    # print('No. points: ', data.count_points())
-    # data.check_ports()
-    # print("")
+    print(data) 
+    print('No. ports:  ', data.count_ports())
+    print('No. points: ', data.count_points())
+    print('2 port:     ', data._is_2port())
+    print('Normalised: ', data._is_normalised())
 
-    # data.delete_port('IF')
-    # print(data)
-    # print('2 port: ', data._is_2port())
-    # print('Normalised: ', data._is_normalised())
-    # print('J port number: ', data.port_number('J'))
-    # # data.plot_sparam(xlim=[180, 260], ylim=[-30, 0])
-    # # data.plot_zin('J', ylim=[-20, 30], xlim=[200, 260])
+    # data.plot_sparam()
 
-    # data1 = data.copy()
-    # data1.rename_port('J', 'J1')
-    # data1.rename_port('WG', 'WG1')
+    data1 = data.copy()
+    data1.rename_port('1', 'IN')
+    data1.rename_port('2', 'OUT')
 
-    # data2 = data.copy()
-    # data2.flip_ports()
-    # data2.rename_port('J', 'J2')
-    # data2.rename_port('WG', 'WG2')
+    data2 = data.copy()
+    data2.flip_ports()
+    data2.rename_port('1', 'IN')
+    data2.rename_port('2', 'OUT')
 
     # new = data1 * data2 
-    # # new.plot_sparam(xlim=[200, 260], ylim=[-15, 0])
+    # new.plot_sparam()
 
     # # data.renormalise_ports()
     # # data.plot_sparam()
     # # print data.z0
+
+    plt.show()

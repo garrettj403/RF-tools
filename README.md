@@ -22,6 +22,8 @@ ln -s RF-tools/bin/* /usr/local/bin/
 Example: Command Line
 ---------------------
 
+**Analyze a rectangular waveguide:**
+
 Input:
 ```bash
 $ waveguide WR4.3 --freq 230
@@ -41,5 +43,25 @@ Output:
     -> at 230.0 GHz
     wavelength      =   1.624       [mm]
     impedance       = 469.469       [ohms]
+```
+
+**Calculate noise temperature:**
+
+Input:
+```bash
+$ noisetemp 4.9/2.2 --freq 850 --thot 300 --tcold 20
+```
+Output:
+```bash
+    Noise temperature from Y-factor
+    --------------------------------------------------
+
+    Y-factor        =   2.227
+
+    -> using CW equations
+    Hot load        = 300.462       [K]
+    Cold load       =  26.496       [K]
+
+    Noise temp.     = 196.735       [K]
 ```
 

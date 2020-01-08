@@ -25,26 +25,29 @@ yfac = eval(args.yfac[0])
 thot = args.thot
 tcold = args.tcold
 
+# Print to terminal
+print("")
+header('Noise temperature from Y-factor')
+
 # If frequency is defined -> use Callen-Welton equations
+print("")
+print("\t-> Black body loads:")
+pvalf("Hot load", thot, "K")
+pvalf("Cold load", tcold, "K")
 if args.freq is not None:
     thot = temp_cw(args.freq * 1e9, thot)
     tcold = temp_cw(args.freq * 1e9, tcold)
+    print("")
+    print("\t-> using CW equations (with f={:.2f} GHz)".format(args.freq))
+    pvalf("Hot load", thot, "K")
+    pvalf("Cold load", tcold, "K")
 
 # Calculate noise temperature
 tn = calculate_tn(yfac, thot=thot, tcold=tcold)
 
 # Print to terminal
 print("")
-header('Noise temperature from Y-factor')
-print("")
 pvalf("Y-factor", yfac)
-print("")
-if args.freq is not None:
-    print("\t-> using CW equations")
-else:
-    print("\t-> using RJ approximation")
-pvalf("Hot load", thot, "K")
-pvalf("Cold load", tcold, "K")
 print("")
 pvalf("Noise temp.", tn, "K")
 print("")

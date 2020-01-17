@@ -42,6 +42,7 @@ class RectangularWaveguide:
         # Dielectric fill
         self.er = er 
         self.ur = ur
+        self.eta = np.sqrt(self.ur * sc.mu_0 / self.er / sc.epsilon_0)
 
         # Cutoff frequency
         self.fc = sc.c / np.sqrt(self.er * self.ur) / 2 / self.a
@@ -61,6 +62,55 @@ class RectangularWaveguide:
             pvalf('high freq.', self.f2 / sc.giga, 'GHz')
             print("")
 
+    def k(self, frequency):
+        """Calculate wavenumber.
+
+        Args:
+            frequency (float): frequency in [Hz]
+
+        Returns:
+            float: wavenumber in [m-1]
+
+        """
+
+        k = 2 * np.pi * frequency * np.sqrt(self.er * self.ur) / sc.c
+
+        return k
+
+    def kc(self, mode):
+        """Calculate cutoff wavenumber.
+
+        Args:
+            mode (str): waveguide mode, e.g., 'TE10'
+
+        Returns:
+            float: cutoff wavenumber in [m-1]
+
+        """
+
+        assert mode[0:2].lower() == 'te' or mode[0:2].lower() == 'tm', \
+            "mode must be either TE or TM"
+        m, n = int(mode[2]), int(mode[3])
+
+        return np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
+
+    def beta(self, frequency, mode):
+        """Calculate propagation constant.
+
+        Args:
+            frequency (float): frequency in [Hz]
+            mode (str): waveguide mode, e.g., 'TE10'
+
+        Returns:
+            float: propagation constant in [m-1]
+
+        """
+
+        k = self.k(frequency)
+        kc = self.kc(mode)
+
+        return np.sqrt(k**2 - kc**2)
+
     def wavelength(self, frequency, mode='TE10'):
         """Calculate guided wavelength.
 
@@ -73,14 +123,7 @@ class RectangularWaveguide:
 
         """
 
-        assert mode[0:2].lower() == 'te' or mode[0:2].lower() == 'tm', \
-            "mode must be either TE or TM"
-        m, n = int(mode[2]), int(mode[3])
-
-        fs_wavelength = sc.c / np.sqrt(self.er * self.ur) / frequency
-        k = 2 * np.pi / fs_wavelength
-        kc = np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
-        beta = np.sqrt(k**2 - kc**2)
+        beta = self.beta(frequency, mode)
         wavelength_g = 2 * np.pi / beta
 
         return wavelength_g.real
@@ -97,18 +140,13 @@ class RectangularWaveguide:
 
         """
 
-        m, n = int(mode[2]), int(mode[3])
-
-        nabla = Z0 * np.sqrt(self.ur / self.er)
-
-        k = 2 * np.pi * frequency / sc.c * np.sqrt(self.er * self.ur)
-        kc = np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
-        beta = np.sqrt(k**2 - kc**2)
+        k = self.k(frequency)
+        beta = self.beta(frequency, mode)
 
         if mode[0:2].lower() == 'te':
-            return k * nabla / beta
+            return k * self.eta / beta
         elif mode[0:2].lower() == 'tm':
-            return beta * nabla / k
+            return beta * self.eta / k
         else:
             print("mode must be either TE or TM")
             raise
@@ -125,46 +163,38 @@ class RectangularWaveguide:
 
         """
 
-        assert mode[0:2].lower() == 'te' or mode[0:2].lower() == 'tm', \
-            "mode must be either TE or TM"
-        m, n = int(mode[2]), int(mode[3])
-
-        kc = np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
-        fc = sc.c / np.sqrt(2 * np.pi * self.er * self.ur) * kc
+        kc = self.kc(mode)
+        fc = sc.c / (2 * np.pi) / np.sqrt(self.er * self.ur) * kc
 
         return fc 
 
 
 class CircularWaveguide:
-    """Class for a circular waveguide.
+    """Class for circular waveguides.
 
     Args:
         a (float): inner radius 'a'
 
     Keyword Args:
-        er (float): relative permittivity
-        ur (float): relative permeability
+        er (float): relative permittivity of dielectric fill (er=1 for air)
+        ur (float): relative permeability of dielectric fill (ur=1 for air)
         verbose (bool): verbosity
         comment (str): comment to describe waveguide
 
     """
-
-    # TODO: add impedance 
 
     def __init__(self, a, er=1, ur=1, **kwargs):
 
         verbose = kwargs.pop('verbose', True)
         comment = kwargs.pop('comment', '')
 
+        # Radius
         self.a = a
 
+        # Dielectric fill
         self.er = er 
         self.ur = ur
-
-        if verbose:
-            header("Circular Waveguide: {0}".format(comment))
-            pvalf('a', a / sc.milli, 'mm')
-            print("")
+        self.eta = np.sqrt(self.ur * sc.mu_0 / self.er / sc.epsilon_0)
 
         # Constants
         # For TE modes (table 3.3 in pozar)
@@ -178,6 +208,79 @@ class CircularWaveguide:
             [0, 3.832, 7.016, 10.174],
             [0, 5.135, 8.417, 11.620]])
 
+        # Cutoff frequency
+        self.fc = self.cutoff()
+
+        # Frequency range (approximate)
+        # same equations as rectangular waveguides
+        self.f1 = 1.25 * self.fc
+        self.f2 = 1.89 * self.fc
+        self.fmid = (self.f1 + self.f2) / 2
+
+        if verbose:
+            header("Circular Waveguide: {0}".format(comment))
+            pvalf('a', a / sc.milli, 'mm')
+            print("")
+            pvalf('low freq.', self.f1 / sc.giga, 'GHz')
+            pvalf('mid freq.', self.fmid / sc.giga, 'GHz')
+            pvalf('high freq.', self.f2 / sc.giga, 'GHz')
+            print("")
+
+    def k(self, frequency):
+        """Calculate wavenumber.
+
+        Args:
+            frequency (float): frequency in [Hz]
+
+        Returns:
+            float: wavenumber in [m-1]
+
+        """
+
+        k = 2 * np.pi * frequency * np.sqrt(self.er * self.ur) / sc.c
+
+        return k
+
+    def kc(self, mode):
+        """Calculate cutoff wavenumber.
+
+        Args:
+            mode (str): waveguide mode, e.g., 'TE11'
+
+        Returns:
+            float: cutoff wavenumber in [m-1]
+
+        """
+
+        if mode[0:2].lower() == 'te':
+            p_temp = self._pp 
+        elif mode[0:2].lower() == 'tm':
+            p_temp = self._p
+        else:
+            print("Error: mode must be either TE or TM")
+            raise
+
+        p_coeff = p_temp[int(mode[2]), int(mode[3])]
+
+        return p_coeff / self.a
+
+    def beta(self, frequency, mode='TE11'):
+        """Calculate propagation constant.
+
+        Args:
+            frequency (float): frequency in [Hz]
+            mode (str): waveguide mode, e.g., 'TE11'
+
+        Returns:
+            float: propagation constant in [m-1]
+
+        """
+
+        k = self.k(frequency)
+        kc = self.kc(mode)
+
+        return np.sqrt(k**2 - kc**2)
+
     def wavelength(self, frequency, mode='TE11'):
         """Calculate guided wavelength.
 
@@ -190,22 +293,9 @@ class CircularWaveguide:
 
         """
 
-        if mode[0:2].lower() == 'te':
-            p_temp = self._pp 
-        elif mode[0:2].lower() == 'tm':
-            p_temp = self._p
-        else:
-            print("Error: mode must be either TE or TM")
-            raise
+        beta = self.beta(frequency, mode)
 
-        p_coeff = p_temp[int(mode[2:3]), int(mode[3:4])]
-
-        k = 2 * np.pi * sc.c * frequency * np.sqrt(self.er * self.ur)
-        kc = p_coeff / self.a
-        beta = np.sqrt(k**2 - kc**2)
-        wavelength_guided = 2 * np.pi / beta
-
-        return wavelength_guided
+        return 2 * np.pi / beta
 
     def cutoff(self, mode='TE11'):
         """Calculate cutoff frequency for given mode.
@@ -218,17 +308,27 @@ class CircularWaveguide:
 
         """
 
+        return self.kc(mode) * sc.c / np.sqrt(self.er * self.ur) / (2 * np.pi)
+
+    def impedance(self, frequency, mode='TE11'):
+        """Calculate characteristic impedance.
+
+        Args:
+            frequency (float): frequency in [Hz]
+            mode (str): waveguide mode, e.g., 'TE11'
+
+        Returns:
+            float: characteristic impedance in [ohms]
+
+        """
+
+        k = self.k(frequency)
+        beta = self.beta(frequency, mode)
+
         if mode[0:2].lower() == 'te':
-            p_temp = self._pp 
+            return self.eta * k / beta
         elif mode[0:2].lower() == 'tm':
-            p_temp = self._p
-        else:
-            print("Error: mode must be either TE or TM")
-            raise
-
-        p_coeff = p_temp[int(mode[2:3]), int(mode[3:4])]
-
-        return p_coeff * sc.c / np.sqrt(self.er * self.ur) / (2 * np.pi * self.a)
+            return self.eta * beta / k
 
 
 # class ParallelPlateWaveguide:

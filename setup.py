@@ -1,9 +1,11 @@
+"""Install RF-tools"""
+
 import io
 import os
 import sys
-
 from os import path
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
 from setuptools.command.test import test as TestCommand
 
 import rftools
@@ -37,7 +39,7 @@ setup(
     version = rftools.__version__,
     author = "John Garrett",
     author_email = "garrettj403@gmail.com",
-    description = "Tools to help design RF components / networks.",
+    description = "Tools to design RF components and networks.",
     license = "MIT",
     url = "https://github.com/garrettj403/RF-tools/",
     keywords = [
@@ -46,13 +48,13 @@ setup(
         "Electrical engineering",
         "RF components",
         "Touchstone",
-        "HFSS"
+        "HFSS",
     ],
     packages=find_packages(),
     install_requires=[
         'matplotlib',
         'numpy',
-        'scipy'
+        'scipy',
     ],
     extras_require={'testing': ['pytest'],},
     tests_require=['pytest'],

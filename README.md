@@ -1,22 +1,19 @@
-RF-tools
+RF tools
 ========
 
-Tools to help design RF components / networks.
+*Tools to design RF components and networks*
 
 Installation
 ------------
 
-To install via pip:
+Install via ``pip``:
 
 ```bash
+# for latest version
 python3 -m pip install git+https://github.com/garrettj403/RF-tools.git
-```
 
-If you would like to use the command line utilities, you'll have to clone the repo onto your computer:
-
-```bash
-git clone https://github.com/garrettj403/RF-tools.git
-ln -s RF-tools/bin/* /usr/local/bin/
+# for last release
+python3 -m pip install rftools
 ```
 
 Examples: Command Line
@@ -95,4 +92,3 @@ Output:
 
     Noise temp.     = 196.735       [K]
 ```
-

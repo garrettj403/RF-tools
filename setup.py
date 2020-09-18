@@ -77,6 +77,7 @@ setup(
     },
     scripts=[
         "bin/waveguide",
+        "bin/waveguide-att",
         "bin/cwaveguide",
         "bin/noisetemp",
     ],

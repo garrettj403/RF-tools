@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""Calculate waveguide attenuation."""
+
+import argparse
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.constants as sc
+
+from rftools import RectangularWaveguide as Waveguide
+from rftools.util import pvalf
+from rftools.misc import skin_depth
+
+np.seterr(invalid='ignore')
+
+# Grab arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', "--type", help="Waveguide size, e.g., WR4.3", default=None)
+parser.add_argument('-a', '--adim', help="The a dimension (in mm)", default=None)
+parser.add_argument('-b', '--bdim', help="The b dimension (in mm)", default=None)
+parser.add_argument('-f', '--freq', help="Frequency to analyze (in GHz)")
+parser.add_argument('-c', '--cond', help="Conductivity at desired frequency (in S/m)")
+args = parser.parse_args()
+
+# Waveguide mode
+mode = 'TE10'
+
+# Get dimensions
+if args.type is not None:
+    assert args.type[:2].strip().lower() == "wr", "Waveguide size must start with WR"
+    if args.type[2] == "-":
+        a = float(args.type[3:]) * 10 * sc.mil
+    else:
+        a = float(args.type[2:]) * 10 * sc.mil
+    b = a / 2
+elif args.adim is not None and args.bdim is not None:
+    a = float(args.adim) * sc.milli
+    b = float(args.bdim) * sc.milli
+else:
+    print("\nUsage: waveguide-att -t <WR size> -f <frequency> -c <conductivity>")
+    print("       OR")
+    print("       waveguide-att -a <a dimension> -b <b dimension> -f <frequency> -c <conductivity>\n")
+    raise ValueError
+
+# Build waveguide
+print("")
+if args.type is not None:
+    wg = Waveguide(a, b, comment=args.type)
+else:
+    if a * 1e3 > 1:
+        msg = "{:.3f} x {:.3f} mm".format(a / sc.milli, b / sc.milli)
+    else:
+        msg = "{:.0f} x {:.0f} um".format(a / sc.micro, b / sc.micro)
+    wg = Waveguide(a, b, comment=msg)
+
+# Frequency
+if args.freq is None:
+    freq = wg.fmid
+else:
+    freq = float(args.freq) * sc.giga
+print(("\tProperties at {:.0f} GHz:".format(freq / sc.giga)))
+pvalf('wavelength', wg.wavelength(freq, mode) / sc.milli, 'mm')
+pvalf('impedance', wg.impedance(freq, mode), 'ohms')
+print("")
+
+# Conductivity
+print("\tConductivity at {:.0f} GHz:".format(freq / sc.giga))
+cond = float(args.cond)
+pvalf('conductivity', cond, 'S/m')
+pvalf('skin depth', skin_depth(freq, cond) / sc.nano, 'nm')
+
+# Calculate attenuation
+att1 = wg.attenuation(freq, cond)  # Np/m
+att2 = att1 * 20 / np.log(10)      # dB/m
+pvalf('attenuation', att1, 'Np/m')
+pvalf('', att2, 'dB/m')
+pvalf('', att2 / 100, 'dB/cm')
+print("")

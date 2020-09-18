@@ -257,6 +257,7 @@ class CircularWaveguide:
 
         if verbose:
             header("Circular Waveguide: {0}".format(comment))
+            print("\n\tDimensions:")
             pvalf('radius a', a / sc.milli, 'mm')
             print("")
             # TODO: find better rule of thumb!

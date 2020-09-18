@@ -31,11 +31,12 @@ print("")
 wg = Waveguide(a)
 
 # Cutoff frequency
-pvalf('cutoff TE11   ', wg.cutoff('TE11') / sc.giga, 'GHz')
-pvalf('cutoff TM01   ', wg.cutoff('TM01') / sc.giga, 'GHz')
-pvalf('cutoff TE21   ', wg.cutoff('TE21') / sc.giga, 'GHz')
-pvalf('cutoff TE01   ', wg.cutoff('TE01') / sc.giga, 'GHz')
-pvalf('cutoff TM11   ', wg.cutoff('TM11') / sc.giga, 'GHz')
+print("\tCutoff frequencies:")
+pvalf('TE11   ', wg.cutoff('TE11') / sc.giga, 'GHz')
+pvalf('TM01   ', wg.cutoff('TM01') / sc.giga, 'GHz')
+pvalf('TE21   ', wg.cutoff('TE21') / sc.giga, 'GHz')
+pvalf('TE01   ', wg.cutoff('TE01') / sc.giga, 'GHz')
+pvalf('TM11   ', wg.cutoff('TM11') / sc.giga, 'GHz')
 print("")
 
 # Analyze frequency
@@ -43,7 +44,7 @@ if args.freq is None:
     freq = wg.cutoff() * 1.5
 else:
     freq = float(args.freq) * sc.giga
-print(("\n\t-> at {0} GHz".format(round(freq / sc.giga, 1))))
+print(("\tProperties at {0} GHz".format(round(freq / sc.giga, 1))))
 pvalf('wavelength', wg.wavelength(freq, args.mode) / sc.milli, 'mm')
 pvalf('impedance', wg.impedance(freq, args.mode), 'ohms')
 print("")

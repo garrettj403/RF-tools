@@ -88,15 +88,18 @@ Output:
 ```bash
     Circular Waveguide:
     --------------------------------------------------
+
+    Dimensions:
     radius a        =   0.500       [mm]
 
-    cutoff TE11     = 175.681       [GHz]
-    cutoff TM01     = 229.502       [GHz]
-    cutoff TE21     = 291.434       [GHz]
-    cutoff TE01     = 365.676       [GHz]
-    cutoff TM11     = 365.676       [GHz]
+    Cutoff frequencies:
+    TE11            = 175.681       [GHz]
+    TM01            = 229.502       [GHz]
+    TE21            = 291.434       [GHz]
+    TE01            = 365.676       [GHz]
+    TM11            = 365.676       [GHz]
 
-    -> at 345.0 GHz
+    Properties at 345.0 GHz
     wavelength      =   1.010       [mm]
     impedance       = 437.735       [ohms]
 ```

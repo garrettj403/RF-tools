@@ -47,11 +47,11 @@ Output:
     impedance       = 469.469       [ohms]
 ```
 
-**Calculate the attenuation constant of a WR2.8 waveguide at 345 GHz:
+**Calculate the attenuation constant of a WR2.8 waveguide at 345 GHz:**
 
 Input
 ```bash
-$ waveguide-att -t WR2.8 -f 345 -c 5.85e7
+$ waveguide-att --type WR2.8 --freq 345 --cond 5.85e7
 ```
 Output
 ```bash

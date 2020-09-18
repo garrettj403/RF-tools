@@ -6,13 +6,11 @@ RF tools
 Installation
 ------------
 
-Install via ``pip``:
-
 ```bash
-# for latest version
+# for latest version (from GitHub)
 python3 -m pip install git+https://github.com/garrettj403/RF-tools.git
 
-# for last release
+# for lastest release (from PyPI)
 python3 -m pip install rftools
 ```
 

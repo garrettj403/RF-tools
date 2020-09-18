@@ -46,9 +46,14 @@ def pvalf(name, val, units='', comment=''):
         print((str_tmp.format(name, re, abs(im), units, comment)))
 
     else:
-        str_tmp = "\t{0:15s} = {1:7.3f}\t{2:15s}{3}"
-        print((str_tmp.format(name, val, units, comment)))
-
+        if val < 1000:
+            str_tmp = "\t{0:15s} = {1:7.3f}\t{2:15s}{3}"
+            print((str_tmp.format(name, val, units, comment)))
+        else:
+            number = "{:7.3e}".format(val)
+            number = number[:5] + ' ' + number[5:].upper()
+            str_tmp = "\t{0:15s} =   {1}\t{2:15s}{3}"
+            print((str_tmp.format(name, number, units, comment)))
 
 def header(header_string):
     """Print a nice header to the terminal.

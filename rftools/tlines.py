@@ -54,12 +54,18 @@ class RectangularWaveguide:
 
         if verbose:
             header("Rectangular Waveguide: {0}".format(comment))
-            pvalf('a', a / sc.milli, 'mm')
-            pvalf('b', b / sc.milli, 'mm')
+            print("\n\tDimensions:")
+            if a / sc.milli > 1:
+                pvalf('a', a / sc.milli, 'mm')
+                pvalf('b', b / sc.milli, 'mm')
+            else:
+                pvalf('a', a / sc.micro, 'um')
+                pvalf('b', b / sc.micro, 'um')
             print("")
-            pvalf('low freq.', self.f1 / sc.giga, 'GHz')
-            pvalf('mid freq.', self.fmid / sc.giga, 'GHz')
-            pvalf('high freq.', self.f2 / sc.giga, 'GHz')
+            print("\tStandard frequency range:")
+            pvalf('low', self.f1 / sc.giga, 'GHz')
+            pvalf('mid', self.fmid / sc.giga, 'GHz')
+            pvalf('high', self.f2 / sc.giga, 'GHz')
             print("")
 
     def k(self, frequency):
@@ -168,6 +174,38 @@ class RectangularWaveguide:
 
         return fc 
 
+    def attenuation(self, freq, cond):
+        """Calculate waveguide attenuation in Np/m.
+
+        Using equation from:
+
+            E. Maxwell, "Conductivity of Metallic Surfaces at Microwave 
+            Frequencies," Journal of Applied Physics, vol. 18, no. 7, 
+            Jul. 1947.
+
+        Args:
+            frequency (float): frequency, in [Hz]
+            cond (float): conductivity at desired frequency, in [S/m]
+
+        Returns:
+            float: waveguide attenuation, in [Np/m]
+
+        """
+
+        # cutoff wavelength of TE10
+        lambda_c = sc.c / self.fc
+        
+        # freespace wavelength
+        lambda_0 = sc.c / freq
+
+        # Eqn from pg 630 of Maxwell 1947
+        att = ((1 / (2 * self.b)) *
+               (1 / (1 - (lambda_0 / lambda_c) ** 2) ** 0.5) *
+               ((4 * np.pi / (lambda_0 * sc.mu_0 * sc.c * cond)) ** 0.5) *
+               (1 + 2 * self.b / self.a * (lambda_0 / lambda_c) ** 2))
+
+        return att
+
 
 class CircularWaveguide:
     """Class for circular waveguides.
@@ -219,12 +257,13 @@ class CircularWaveguide:
 
         if verbose:
             header("Circular Waveguide: {0}".format(comment))
-            pvalf('a', a / sc.milli, 'mm')
+            pvalf('radius a', a / sc.milli, 'mm')
             print("")
-            pvalf('low freq.', self.f1 / sc.giga, 'GHz')
-            pvalf('mid freq.', self.fmid / sc.giga, 'GHz')
-            pvalf('high freq.', self.f2 / sc.giga, 'GHz')
-            print("")
+            # TODO: find better rule of thumb!
+            # pvalf('low freq.', self.f1 / sc.giga, 'GHz')
+            # pvalf('mid freq.', self.fmid / sc.giga, 'GHz')
+            # pvalf('high freq.', self.f2 / sc.giga, 'GHz')
+            # print("")
 
     def k(self, frequency):
         """Calculate wavenumber.

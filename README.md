@@ -1,7 +1,7 @@
 RF tools
 ========
 
-*Tools to design RF components and networks*
+*Tools for designing RF components and networks*
 
 Installation
 ------------
@@ -14,10 +14,10 @@ python3 -m pip install git+https://github.com/garrettj403/RF-tools.git
 python3 -m pip install rftools
 ```
 
-Examples: Command Line
-----------------------
+Examples of the Command Line Tools
+----------------------------------
 
-**Analyze a WR4.3 rectangular waveguide:**
+**Calculate the properties of a WR4.3 rectangular waveguide at 230 GHz:**
 
 Input:
 ```bash
@@ -27,24 +27,58 @@ Output:
 ```bash
     Rectangular Waveguide: WR4.3
     --------------------------------------------------
-    a               =   1.092               [mm]
-    b               =   0.546               [mm]
 
-    low freq.       = 171.553               [GHz]
-    mid freq.       = 215.471               [GHz]
-    high freq.      = 259.388               [GHz]
+    Dimensions:
+    a               =   1.092       [mm]
+    b               =   0.546       [mm]
 
-    cutoff TE10     = 137.242               [GHz]
-    cutoff TE20     = 274.485               [GHz]
-    cutoff TE01     = 274.485               [GHz]
-    cutoff TE/TM11  = 306.883               [GHz]
+    Standard frequency range:
+    low             = 171.553       [GHz]
+    mid             = 215.471       [GHz]
+    high            = 259.388       [GHz]
+
+    cutoff TE10     = 137.242       [GHz]
+    cutoff TE20     = 274.485       [GHz]
+    cutoff TE01     = 274.485       [GHz]
+    cutoff TE/TM11  = 306.883       [GHz]
 
     -> at 230.0 GHz
-    wavelength      =   1.624               [mm]
-    impedance       = 469.469               [ohms]
+    wavelength      =   1.624       [mm]
+    impedance       = 469.469       [ohms]
 ```
 
-**Analyze a 0.5 mm radius circular waveguide:**
+**Calculate the attenuation constant of a WR2.8 waveguide at 345 GHz:
+
+Input
+```bash
+$ waveguide-att -t WR2.8 -f 345 -c 5.85e7
+```
+Output
+```bash
+    Rectangular Waveguide: WR2.8
+    --------------------------------------------------
+
+    Dimensions:
+    a               = 711.200       [um]
+    b               = 355.600       [um]
+
+    Standard frequency range:
+    low             = 263.457       [GHz]
+    mid             = 330.901       [GHz]
+    high            = 398.346       [GHz]
+
+    Properties at 345 GHz:
+    wavelength      =   1.098       [mm]
+    impedance       = 475.852       [ohms]
+
+    Conductivity at 345 GHz:
+    conductivity    =   5.850 E+07      [S/m]
+    skin depth      = 112.030       [nm]
+    attenuation     =   1.976       [Np/m]
+                    =  17.160       [dB/m]
+                    =   0.172       [dB/cm]
+``` 
+**Calculate the properties of a 0.5 mm radius circular waveguide at 345 GHz:**
 
 Input: 
 ```bash
@@ -54,24 +88,20 @@ Output:
 ```bash
     Circular Waveguide:
     --------------------------------------------------
-    a               =   0.500               [mm]
+    radius a        =   0.500       [mm]
 
-    low freq.       = 219.601               [GHz]
-    mid freq.       = 275.819               [GHz]
-    high freq.      = 332.037               [GHz]
-
-    cutoff TE11     = 175.681               [GHz]
-    cutoff TM01     = 229.502               [GHz]
-    cutoff TE21     = 291.434               [GHz]
-    cutoff TE01     = 365.676               [GHz]
-    cutoff TM11     = 365.676               [GHz]
+    cutoff TE11     = 175.681       [GHz]
+    cutoff TM01     = 229.502       [GHz]
+    cutoff TE21     = 291.434       [GHz]
+    cutoff TE01     = 365.676       [GHz]
+    cutoff TM11     = 365.676       [GHz]
 
     -> at 345.0 GHz
-    wavelength      =   1.010               [mm]
-    impedance       = 437.735               [ohms]
+    wavelength      =   1.010       [mm]
+    impedance       = 437.735       [ohms]
 ```
 
-**Calculate noise temperature using Y-factor technique:**
+**Calculate the noise temperature using the Y-factor technique:**
 
 Input:
 ```bash

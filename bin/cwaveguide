@@ -44,7 +44,7 @@ if args.freq is None:
     freq = wg.cutoff() * 1.5
 else:
     freq = float(args.freq) * sc.giga
-print(("\tProperties at {0} GHz".format(round(freq / sc.giga, 1))))
+print(("\tProperties at {0} GHz:".format(round(freq / sc.giga, 1))))
 pvalf('wavelength', wg.wavelength(freq, args.mode) / sc.milli, 'mm')
 pvalf('impedance', wg.impedance(freq, args.mode), 'ohms')
 print("")

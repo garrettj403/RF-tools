@@ -35,24 +35,25 @@ print("")
 wg = Waveguide(a, a/2, comment=args.type[0])
 
 # Cutoff frequency
-pvalf('cutoff TE10   ', wg.cutoff('TE10') / sc.giga, 'GHz')
-pvalf('cutoff TE20   ', wg.cutoff('TE20') / sc.giga, 'GHz')
-pvalf('cutoff TE01   ', wg.cutoff('TE01') / sc.giga, 'GHz')
-pvalf('cutoff TE/TM11', wg.cutoff('TE11') / sc.giga, 'GHz')
+print("\tCutoff frequencies:")
+pvalf('TE10   ', wg.cutoff('TE10') / sc.giga, 'GHz')
+pvalf('TE20   ', wg.cutoff('TE20') / sc.giga, 'GHz')
+pvalf('TE01   ', wg.cutoff('TE01') / sc.giga, 'GHz')
+pvalf('TE/TM11', wg.cutoff('TE11') / sc.giga, 'GHz')
 
 # Analyze frequency
 if args.freq is None:
     freq = wg.fmid
 else:
     freq = float(args.freq) * sc.giga
-print(("\n\t-> at {0} GHz".format(round(freq / sc.giga, 1))))
+print(("\n\tProperties at {0} GHz:".format(round(freq / sc.giga, 1))))
 pvalf('wavelength', wg.wavelength(freq, args.mode) / sc.milli, 'mm')
 pvalf('impedance', wg.impedance(freq, args.mode), 'ohms')
 print("")
 
 # Plot characteristic impedance
 if args.plotz:
-    f_cutoff = wg.cutoff(args.mode)
+    f_= wg.cutoff(args.mode)
 
     f = np.linspace(0.8 * f_cutoff, 2.1 * f_cutoff, 300)
 
@@ -64,7 +65,7 @@ if args.plotz:
 
 # Plot wavelength
 if args.plotw:
-    f_cutoff = wg.cutoff(args.mode)
+    f_= wg.cutoff(args.mode)
 
     f = np.linspace(0.8 * f_cutoff, 2.1 * f_cutoff, 300)
 

@@ -29,22 +29,23 @@ Output:
     --------------------------------------------------
 
     Dimensions:
-    a               =   1.092       [mm]
-    b               =   0.546       [mm]
+    a                      1.092        [mm]
+    b                      0.546        [mm]
 
     Standard frequency range:
-    low             = 171.553       [GHz]
-    mid             = 215.471       [GHz]
-    high            = 259.388       [GHz]
+    low                  171.553        [GHz]
+    mid                  215.471        [GHz]
+    high                 259.388        [GHz]
 
-    cutoff TE10     = 137.242       [GHz]
-    cutoff TE20     = 274.485       [GHz]
-    cutoff TE01     = 274.485       [GHz]
-    cutoff TE/TM11  = 306.883       [GHz]
+    Cutoff frequencies:
+    TE10                 137.242        [GHz]
+    TE20                 274.485        [GHz]
+    TE01                 274.485        [GHz]
+    TE/TM11              306.883        [GHz]
 
-    -> at 230.0 GHz
-    wavelength      =   1.624       [mm]
-    impedance       = 469.469       [ohms]
+    Properties at 230.0 GHz:
+    wavelength             1.624        [mm]
+    impedance            469.469        [ohms]
 ```
 
 **Calculate the attenuation constant of a WR2.8 waveguide at 345 GHz:**
@@ -59,24 +60,24 @@ Output
     --------------------------------------------------
 
     Dimensions:
-    a               = 711.200       [um]
-    b               = 355.600       [um]
+    a                    711.200        [um]
+    b                    355.600        [um]
 
     Standard frequency range:
-    low             = 263.457       [GHz]
-    mid             = 330.901       [GHz]
-    high            = 398.346       [GHz]
+    low                  263.457        [GHz]
+    mid                  330.901        [GHz]
+    high                 398.346        [GHz]
 
     Properties at 345 GHz:
-    wavelength      =   1.098       [mm]
-    impedance       = 475.852       [ohms]
+    wavelength             1.098        [mm]
+    impedance            475.852        [ohms]
 
-    Conductivity at 345 GHz:
-    conductivity    =   5.850 E+07      [S/m]
-    skin depth      = 112.030       [nm]
-    attenuation     =   1.976       [Np/m]
-                    =  17.160       [dB/m]
-                    =   0.172       [dB/cm]
+    Attenuation at 345 GHz:
+    conductivity           5.850 E+07   [S/m]
+    skin depth           112.030        [nm]
+    attenuation            1.976        [Np/m]
+                          17.160        [dB/m]
+                           0.172        [dB/cm]
 ``` 
 **Calculate the properties of a 0.5 mm radius circular waveguide at 345 GHz:**
 
@@ -90,18 +91,18 @@ Output:
     --------------------------------------------------
 
     Dimensions:
-    radius a        =   0.500       [mm]
+    radius a               0.500        [mm]
 
     Cutoff frequencies:
-    TE11            = 175.681       [GHz]
-    TM01            = 229.502       [GHz]
-    TE21            = 291.434       [GHz]
-    TE01            = 365.676       [GHz]
-    TM11            = 365.676       [GHz]
+    TE11                 175.681        [GHz]
+    TM01                 229.502        [GHz]
+    TE21                 291.434        [GHz]
+    TE01                 365.676        [GHz]
+    TM11                 365.676        [GHz]
 
-    Properties at 345.0 GHz
-    wavelength      =   1.010       [mm]
-    impedance       = 437.735       [ohms]
+    Properties at 345.0 GHz:
+    wavelength             1.010        [mm]
+    impedance            437.735        [ohms]
 ```
 
 **Calculate the noise temperature using the Y-factor technique:**
@@ -115,11 +116,15 @@ Output:
     Noise temperature from Y-factor
     --------------------------------------------------
 
-    Y-factor        =   2.227
+    Physical temperature of black body loads:
+    Hot load             300.000        [K]
+    Cold load             20.000        [K]
 
-    -> using CW equations with f = 850 GHz
-    Hot load        = 300.462       [K]
-    Cold load       =  26.496       [K]
+    Equiv. temp. from CW equations (with f=850.0 GHz):
+    Hot load             300.462        [K]
+    Cold load             26.496        [K]
 
-    Noise temp.     = 196.735       [K]
+    Y-factor               2.227
+
+    Noise temperature    196.735        [K]
 ```

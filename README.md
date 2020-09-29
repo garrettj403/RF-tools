@@ -128,3 +128,23 @@ Output:
 
     Noise temperature    196.735        [K]
 ```
+
+**Calculate the width of a microstrip:**
+
+Input:
+```bash
+$ 
+```
+Output:
+```bash
+    Microstrip:
+    --------------------------------------------------
+
+    Input values:
+    desired Z0            50.000        [ohms]
+    thickness (t)         15.000        [mil]
+    rel. permittivity      2.200
+
+    Output:
+    microstrip width       1.174        [mm]
+```

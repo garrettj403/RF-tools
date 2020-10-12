@@ -29,11 +29,26 @@ def temp_cw(freq, tphys):
 
     Args:
         freq (ndarray): frequency in [Hz]
-        tphys (float): ambient temperature in [K]
+        tphys (float): physical temperature in [K]
+
+    Returns:
+        ndarray: equivalent temperature
+
+    """
+
+    return sc.h * freq / 2 / sc.k / np.tanh(sc.h * freq / 2 / sc.k / tphys)
+
+
+def temp_rj(freq, tphys):
+    """Rayleigh-Jeans (RJ) equivalent temperature. 
+
+    Args:
+        freq (ndarray): frequency in [Hz]
+        tphys (float): physical temperature in [K]
 
     Returns:
         ndarray: RJ equivalent temperature
 
     """
 
-    return sc.h * freq / 2 / sc.k / np.tanh(sc.h * freq / 2 / sc.k / tphys)
+    return (sc.h * freq / sc.k) / (np.exp(sc.h * freq / (sc.k * tphys)) - 1)

@@ -133,7 +133,7 @@ Output:
 
 Input:
 ```bash
-$ 
+$ 50ohm-line --z0 50 --thickness 15 --er 2.2
 ```
 Output:
 ```bash

@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""Calculate Rayleigh-Jeans equivalent temperature from the physical temperature."""
+
+import argparse
+
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy.constants as sc
+
+from rftools.noise import temp_rj
+from rftools.util import pvalf, header
+
+# Grab arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("tphys", type=float, nargs=1, help="Physical temperature in [K]")
+parser.add_argument('-f',  '--freq',  help="Frequency in [GHz]", default=345, type=float)
+args = parser.parse_args()
+
+# Unpack
+freq = float(args.freq) * sc.giga
+tphys = float(args.tphys[0])
+
+# Print to terminal
+print("")
+header('Rayleigh-Jeans Equivalent Temperature')
+print("")
+pvalf("Phys. temp.", tphys, "K")
+print("")
+pvalf("Frequency", freq / 1e9, "GHz")
+print("")
+pvalf("RJ equiv. temp.", temp_rj(freq, tphys), "K")
+print("")

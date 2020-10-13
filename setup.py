@@ -76,9 +76,12 @@ setup(
         'Issue Tracker': 'https://github.com/garrettj403/RF-tools/issues',
     },
     scripts=[
+        "bin/50ohm-line",
         "bin/waveguide",
         "bin/waveguide-att",
         "bin/cwaveguide",
         "bin/noisetemp",
+        "bin/temp-rj",
+        "bin/temp-cw",
     ],
 )

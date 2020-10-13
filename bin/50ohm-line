@@ -35,5 +35,8 @@ pvalf("thickness (t)", thickness / sc.mil, "mil")
 pvalf("rel. permittivity", er)
 print("")
 print("\tOutput:")
-pvalf("microstrip width", width / sc.milli, "mm")
+if width / sc.milli > 0.1:
+    pvalf("microstrip width", width / sc.milli, "mm")
+else:
+    pvalf("microstrip width", width / sc.micro, "um")
 print("")

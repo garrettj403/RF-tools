@@ -10,6 +10,10 @@ import numpy as np
 import scipy.constants as sc
 from rftools.util import pvalf, header
 
+from numpy import sqrt, exp
+from numpy import log as ln
+from scipy.constants import pi 
+
 Z0 = sc.physical_constants['characteristic impedance of vacuum'][0]
 
 
@@ -42,10 +46,10 @@ class RectangularWaveguide:
         # Dielectric fill
         self.er = er 
         self.ur = ur
-        self.eta = np.sqrt(self.ur * sc.mu_0 / self.er / sc.epsilon_0)
+        self.eta = sqrt(self.ur * sc.mu_0 / self.er / sc.epsilon_0)
 
         # Cutoff frequency
-        self.fc = sc.c / np.sqrt(self.er * self.ur) / 2 / self.a
+        self.fc = sc.c / sqrt(self.er * self.ur) / 2 / self.a
 
         # Frequency range
         self.f1 = 1.25 * self.fc
@@ -79,7 +83,7 @@ class RectangularWaveguide:
 
         """
 
-        k = 2 * np.pi * frequency * np.sqrt(self.er * self.ur) / sc.c
+        k = 2 * pi * frequency * sqrt(self.er * self.ur) / sc.c
 
         return k
 
@@ -98,7 +102,7 @@ class RectangularWaveguide:
             "mode must be either TE or TM"
         m, n = int(mode[2]), int(mode[3])
 
-        return np.sqrt((m * np.pi / self.a)**2 + (n * np.pi / self.b)**2)
+        return sqrt((m * pi / self.a)**2 + (n * pi / self.b)**2)
 
     def beta(self, frequency, mode):
         """Calculate propagation constant.
@@ -115,7 +119,7 @@ class RectangularWaveguide:
         k = self.k(frequency)
         kc = self.kc(mode)
 
-        return np.sqrt(k**2 - kc**2)
+        return sqrt(k**2 - kc**2)
 
     def wavelength(self, frequency, mode='TE10'):
         """Calculate guided wavelength.
@@ -130,7 +134,7 @@ class RectangularWaveguide:
         """
 
         beta = self.beta(frequency, mode)
-        wavelength_g = 2 * np.pi / beta
+        wavelength_g = 2 * pi / beta
 
         return wavelength_g.real
 
@@ -170,7 +174,7 @@ class RectangularWaveguide:
         """
 
         kc = self.kc(mode)
-        fc = sc.c / (2 * np.pi) / np.sqrt(self.er * self.ur) * kc
+        fc = sc.c / (2 * pi) / sqrt(self.er * self.ur) * kc
 
         return fc 
 
@@ -201,7 +205,7 @@ class RectangularWaveguide:
         # Eqn from pg 630 of Maxwell 1947
         att = ((1 / (2 * self.b)) *
                (1 / (1 - (lambda_0 / lambda_c) ** 2) ** 0.5) *
-               ((4 * np.pi / (lambda_0 * sc.mu_0 * sc.c * cond)) ** 0.5) *
+               ((4 * pi / (lambda_0 * sc.mu_0 * sc.c * cond)) ** 0.5) *
                (1 + 2 * self.b / self.a * (lambda_0 / lambda_c) ** 2))
 
         return att
@@ -232,7 +236,7 @@ class CircularWaveguide:
         # Dielectric fill
         self.er = er 
         self.ur = ur
-        self.eta = np.sqrt(self.ur * sc.mu_0 / self.er / sc.epsilon_0)
+        self.eta = sqrt(self.ur * sc.mu_0 / self.er / sc.epsilon_0)
 
         # Constants
         # For TE modes (table 3.3 in pozar)
@@ -277,7 +281,7 @@ class CircularWaveguide:
 
         """
 
-        k = 2 * np.pi * frequency * np.sqrt(self.er * self.ur) / sc.c
+        k = 2 * pi * frequency * sqrt(self.er * self.ur) / sc.c
 
         return k
 
@@ -319,7 +323,7 @@ class CircularWaveguide:
         k = self.k(frequency)
         kc = self.kc(mode)
 
-        return np.sqrt(k**2 - kc**2)
+        return sqrt(k**2 - kc**2)
 
     def wavelength(self, frequency, mode='TE11'):
         """Calculate guided wavelength.
@@ -335,7 +339,7 @@ class CircularWaveguide:
 
         beta = self.beta(frequency, mode)
 
-        return 2 * np.pi / beta
+        return 2 * pi / beta
 
     def cutoff(self, mode='TE11'):
         """Calculate cutoff frequency for given mode.
@@ -348,7 +352,7 @@ class CircularWaveguide:
 
         """
 
-        return self.kc(mode) * sc.c / np.sqrt(self.er * self.ur) / (2 * np.pi)
+        return self.kc(mode) * sc.c / sqrt(self.er * self.ur) / (2 * pi)
 
     def impedance(self, frequency, mode='TE11'):
         """Calculate characteristic impedance.
@@ -392,13 +396,13 @@ class CircularWaveguide:
 #         self.d = d
 #         self.w = w 
 
-#         self.z0 = d / w * np.sqrt(sc.mu_0 / sc.epsilon_0 / er)
+#         self.z0 = d / w * sqrt(sc.mu_0 / sc.epsilon_0 / er)
 #         # self.ee = _ee(er, d, w)
-#         # self.vp = sc.c / np.sqrt(self.ee)
+#         # self.vp = sc.c / sqrt(self.ee)
 #         # self.z0 = find_microstrip_z0(er, d, w)
 
 #         if verbose:
-#             parallel_plate_z0 = d / w * Z0 / np.sqrt(self.ee)
+#             parallel_plate_z0 = d / w * Z0 / sqrt(self.ee)
 #             fringing_factor = self.z0 / parallel_plate_z0
             
 #             header("Parallel plate {0}".format(comment))
@@ -431,7 +435,7 @@ class CircularWaveguide:
 #     #     :return: wavelength (in m)
 #     #     """
 
-#     #     return sc.c / frequency / np.sqrt(self.ee)
+#     #     return sc.c / frequency / sqrt(self.ee)
 
 
 # Microstrip -----------------------------------------------------------------
@@ -456,11 +460,11 @@ class Microstrip:
         self.w = w 
 
         self.ee = _ee(er, d, w)
-        self.vp = sc.c / np.sqrt(self.ee)
+        self.vp = sc.c / sqrt(self.ee)
         self.z0 = find_microstrip_z0(er, d, w)
 
         if verbose:
-            parallel_plate_z0 = d / w * Z0 / np.sqrt(self.ee)
+            parallel_plate_z0 = d / w * Z0 / sqrt(self.ee)
             fringing_factor = self.z0 / parallel_plate_z0
             
             header("\nMicrostrip {0}".format(comment))
@@ -490,7 +494,59 @@ class Microstrip:
 
         """
 
-        return sc.c / frequency / np.sqrt(self.ee)
+        return sc.c / frequency / sqrt(self.ee)
+
+    def dielectric_loss(self, skin_depth):
+        """Calculate the attenuation due to dielectric loss in Np/m.
+
+        Equation 3.198 in Pozar.
+
+        Args:
+            skin_depth (float): skin depth
+
+        Returns:
+            attenuation due to dielectric loss in Np/m
+
+        """
+
+        alpha_d = (k0 * self.er * (self.ee - 1) * tan(skin_depth) / 
+                   (2 * sqrt(self.ee) * (self.er - 1)))
+
+        return alpha_d
+
+    def conductor_loss(self, freq, cond):
+        """Calculate the attenuation due to conductor loss in Np/m.
+
+        Equation 3.199 in Pozar.
+
+        Args:
+            freq (float): frequency
+            cond (float): conductivity of conductor
+
+        Returns:
+            attenuation due to conductor loss
+
+        """
+
+        # Surface resistance of conductor
+        rs = sqrt(2 * pi * freq * sc.mu_0 / 2 / cond)
+
+        return rs / self.z0 / self.w
+
+    def attenuation(self, rs, skin_depth):
+        """Calculate attenuation in Np/m (including dielectric and conductor 
+        loss).
+
+        Args:
+            rs (float): surface resistance of the conductor
+            skin_depth (float): skin depth of the dielectric
+
+        Returns:
+            attenuation in Np/m
+
+        """
+
+        return self.conductor_loss(rs) + self.dielectric_loss(skin_depth)
 
 
 def find_microstrip_width(er, d, z0=50.):
@@ -507,23 +563,32 @@ def find_microstrip_width(er, d, z0=50.):
 
     """
 
-    a = z0 / 60 * np.sqrt((er + 1) / 2) + (er - 1) / (er + 1) * (0.23 + 0.11 / er)
-    b = 377 * sc.pi / (2 * z0 * np.sqrt(er))
+    a = z0 / 60 * sqrt((er + 1) / 2) + (er - 1) / (er + 1) * (0.23 + 0.11 / er)
+    b = 60 * pi ** 2 / (z0 * sqrt(er))
 
     # Eqn. 3.197 in Pozar
-    wd1 = 8 * np.exp(a) / (np.exp(2 * a) - 2)
-    wd2 = 2 / sc.pi * (b - 1 - np.log(2 * b - 1) + (er - 1) / (2 * er) * (np.log(b - 1) + 0.39 - 0.61 / er))
+    wd1 = 8 * exp(a) / (exp(2 * a) - 2)
+    wd2 = 2 / pi * (b - 1 - ln(2 * b - 1) + (er - 1) / (2 * er) * (ln(b - 1) + 0.39 - 0.61 / er))
 
-    if wd1 < 2:
-        return wd1 * d
-    elif wd2 > 2:
-        return wd2 * d
-    else:
-        raise ValueError
+    if isinstance(wd1, float):
+        if a > 1.52:
+            return wd1 * d
+        elif wd2 >= 2:
+            return wd2 * d
+    elif isinstance(wd1, np.ndarray):
+        wd = np.empty_like(wd1)
+        mask = a > 1.52
+        wd[mask] = wd1[mask]
+        wd[~mask] = wd2[~mask]
+        return wd * d 
 
 
 def find_microstrip_z0(er, d, w):
-    """Calculate characterisitic impedance.
+    """Calculate characterisitic impedance of microstrip.
+
+    Closed-form expressions from Wheeler and Schneider:
+    - Eqn. 3.196 in Pozar
+    - Eqn. 2.116 in Gupta
 
     Args:
         er (float): relative permittivity of the dielectric
@@ -535,23 +600,36 @@ def find_microstrip_z0(er, d, w):
 
     """
 
+    # Effective dielectric constant
+    # Note: if w / d is an array, ee will be an array as well
     ee = _ee(er, d, w)
 
-    # Eqn. 3.196 in Pozar
-    if w / d <= 1:
-        return 60 / np.sqrt(ee) * np.log(8 * d / w + w / 4 / d)
-    else:
-        return 120 * sc.pi / (np.sqrt(ee) * \
-               (w / d + 1.393 + 0.667 * np.log(w / d + 1.444)))
+    # Width to thickness ratio
+    wd = w / d
+
+    if isinstance(wd, float):
+        if wd <= 1:
+            return 60 / sqrt(ee) * ln(8 / wd + wd / 4)
+        else:
+            return 120 * pi / (sqrt(ee) * (wd + 1.393 + 0.667 * ln(wd + 1.444)))
+    elif isinstance(wd, np.ndarray):
+        z0 = np.empty_like(wd)
+        for i, wdi in np.ndenumerate(wd):
+            if wdi <= 1:
+                z0[i] = 60 / sqrt(ee[i]) * ln(8 / wdi + wdi / 4)
+            else:
+                z0[i] = 120 * pi / (sqrt(ee[i]) * (wdi + 1.393 + 0.667 * ln(wdi + 1.444)))
+        return z0
 
 
 def _ee(er, d, w):
-    """Effective dielectric permittivity.
+    """Effective dielectric permittivity for a microstrip.
 
-    Eqn. 3.195 in Pozar.
+    - Eqn. 3.195 in Pozar
+    - Eqn. 2.117 in Gupta
 
     Args:
-        er (float): relative permittivity of the dielectric
+        er (float): relative permittivity of the dielectric material
         d (float): thickness of the dielectric in [m]
         w (float): width of the microstrip in [m]
 
@@ -560,4 +638,129 @@ def _ee(er, d, w):
 
     """
 
-    return (er + 1) / 2 + (er - 1) / 2 / np.sqrt(1 + 12 * d / w)
+    # Width to thickness ratio
+    wd = w / d
+
+    if isinstance(wd, float):
+        f = 1 / sqrt(1 + 12 / wd)
+        if wd <= 1:
+            f += 0.04 * (1 - wd) ** 2
+        return (er + 1) / 2 + (er - 1) / 2 * f
+    elif isinstance(wd, np.ndarray):
+        mask = wd <= 1
+        f = 1 / sqrt(1 + 12 / wd)
+        f[mask] += 0.04 * (1 - wd[mask]) ** 2
+        return (er + 1) / 2 + (er - 1) / 2 * f
+
+
+# TODO: Move to util
+def db10(value):
+    """Calculate dB from power value.
+
+    Args:
+        value (float): value to convert (units of power)
+
+    Returns:
+        value in dB
+
+    """
+
+    return 10 * np.log10(np.abs(value))
+
+
+def db20(value):
+    """Calculate dB from voltage value.
+
+    Args:
+        value (float): value to convert (units of voltage)
+
+    Returns:
+        value in dB
+
+    """
+
+    return 20 * np.log10(np.abs(value))
+
+
+# TODO: implement
+# def np2db(value_in_np):
+#     return 
+
+# def db2np(value_in_db):
+#     return
+
+
+# ----------------------------------------------------------------------------
+
+if __name__ == "__main__":
+
+    import matplotlib.pyplot as plt 
+
+    ### Microstrip ###
+
+    # Frequency
+    f = 320 * sc.giga
+
+    # Relative permittivity
+    er = 4.4 
+
+    # Dielectric thickness
+    d = 250 * sc.nano
+
+    # Width (sweep)
+    w = np.linspace(0.001, 20, 1001) * sc.micro
+
+    # Calculate characteristic impedance for each width
+    z0 = find_microstrip_z0(er, d, w)
+
+    # Recover width from characteristic impedance
+    w2 = find_microstrip_width(er, d, z0)
+
+    # Effective dielectric constant
+    ee = _ee(er, d, w)
+
+    # Wavelength
+    wavel = sc.c / f / sqrt(ee)
+
+    # Print to terminal
+    print("")
+    header("Microstrip")
+    print("")
+    pvalf("Frequency", f/sc.giga, "GHz")
+    print("")
+    pvalf("Rel. permittivity", er, "")
+    pvalf("Diel. thickness", d / sc.nano, "nm")
+    print("")
+
+    # Plot characteristic impedance vs. width
+    plt.figure()
+    plt.plot(w / sc.micro, z0)
+    plt.xlabel("Width (um)")
+    plt.ylabel("Characteristic impedance (ohms)")
+    plt.xlim([0, w.max() / sc.micro])
+    plt.ylim(ymin=0)
+
+    # Effective permittivity vs. width
+    plt.figure()
+    plt.semilogx(w / sc.micro, ee)
+    plt.axhline(er, c='k', ls='--')
+    plt.axvline(d / sc.micro, c='k', lw=0.5)
+    plt.xlabel("Width (um)")
+    plt.ylabel("Relative Permittivity")
+    plt.xlim([w.min() / sc.micro, w.max() / sc.micro])
+
+    # # Error on recovered width (from going back and forth)
+    # plt.figure()
+    # plt.plot(w / sc.micro, (w - w2) / w * 100)
+    # plt.xlabel("Width (um)")
+    # plt.ylabel("Width Error (%)")
+    # plt.xlim([0, w.max() / sc.micro])
+
+    # Wavelength vs. width
+    plt.figure()
+    plt.plot(w / sc.micro, wavel / sc.micro)
+    plt.xlabel("Width (um)")
+    plt.ylabel("Wavelength (um)")
+    plt.xlim([0, w.max() / sc.micro])
+
+    plt.show()

@@ -6,6 +6,12 @@ import scipy.constants as sc
 from numpy import pi, sqrt, arctan
 from scipy.constants import mu_0, m_e, e
 
+
+def surface_resistance(freq, cond):
+
+    return sqrt(2 * pi * freq * sc.mu_0 / 2 / cond)
+
+
 def skin_depth(freq, cond, mu_r=1):
     """Calculate skin depth.
 
@@ -57,7 +63,7 @@ def conductivity_4k(freq, fermi_speed, e_density, mu_r=1):
         (pi * mu_r * mu_0 * m_e ** 2 * fermi_speed ** 2 * freq)) ** (1 / 3)
 
 
-def conductivity_rough(freq, cond, h):
+def conductivity_rough(freq, cond, h, model='groiss'):
     """Calculate the effective conductivity of a rough metal.
 
     Using the Hammerstad-Bekkadal (HB) formula.
@@ -74,8 +80,13 @@ def conductivity_rough(freq, cond, h):
     
     d = skin_depth(freq, cond)
     
-    return cond * (1 + 2 / pi * arctan(1.4 * (h / d) ** 2)) ** (-2)
-
+    if model.lower() == 'groiss':
+        return cond * (1 + np.exp(-(d / 2 / h) ** 1.6)) ** (-2)
+    elif model.lower() == 'hb':
+        return cond * (1 + 2 / pi * arctan(1.4 * (h / d) ** 2)) ** (-2)
+    else:
+        print("Model not recognized")
+        raise ValueError
 
 if __name__ == "__main__":
     """Print out the properties of copper and gold at 300K and 4K."""

@@ -1,58 +1,79 @@
+"""Conversions between different network parameters (S, Z, Y, T, ABCD)."""
+
 import numpy as np 
 
 
 # S-parameters to ... --------------------------------------------------------
 
-def s_to_zparam(sparam, z0):
+# def s_to_zparam(sparam, z0):
+#     """Convert S-parameters to Z-parameters.
 
-    # Method 1: 
-    # https://en.wikipedia.org/wiki/Impedance_parameters#Relation_to_S-parameters
+#     Args:
+#         sparam (ndarray): S-parameters
+#         z0 (ndarray): port impedance
 
-    # zparam = np.empty_like(sparam)
-    # _, _, npts = sparam.shape
+#     Returns:
+#         ndarray: Z-parameters
 
-    # for idx in range(npts):
+#     """
+
+#     # Method 1: 
+#     # https://en.wikipedia.org/wiki/Impedance_parameters#Relation_to_S-parameters
+
+#     # zparam = np.empty_like(sparam)
+#     # _, _, npts = sparam.shape
+
+#     # for idx in range(npts):
         
-    #     zsqrt = np.matrix([[np.sqrt(z0[0,idx]), 0],
-    #                        [0, np.sqrt(z0[1,idx])]])
-    #     s = np.matrix(sparam[:,:,idx])
-    #     i = np.matrix([[1., 0.], 
-    #                    [0., 1.]])
+#     #     zsqrt = np.matrix([[np.sqrt(z0[0,idx]), 0],
+#     #                        [0, np.sqrt(z0[1,idx])]])
+#     #     s = np.matrix(sparam[:,:,idx])
+#     #     i = np.matrix([[1., 0.], 
+#     #                    [0., 1.]])
 
-    #     zparam[:,:,idx] = zsqrt * (i + s) * np.linalg.inv(i - s) * zsqrt
+#     #     zparam[:,:,idx] = zsqrt * (i + s) * np.linalg.inv(i - s) * zsqrt
 
-    # Method 2:
-    # DOI: 10.1109/22.275248
+#     # Method 2:
+#     # DOI: 10.1109/22.275248
 
-    z01 = z0[0]
-    z02 = z0[1]
-    z01c = np.conj(z01)
-    z02c = np.conj(z02)
-    r01 = z01.real
-    r02 = z02.real
+#     z01 = z0[0]
+#     z02 = z0[1]
+#     z01c = np.conj(z01)
+#     z02c = np.conj(z02)
+#     r01 = z01.real
+#     r02 = z02.real
 
-    s11 = sparam[0,0]
-    s21 = sparam[1,0]
-    s12 = sparam[0,1]
-    s22 = sparam[1,1]
+#     s11 = sparam[0,0]
+#     s21 = sparam[1,0]
+#     s12 = sparam[0,1]
+#     s22 = sparam[1,1]
 
-    denom = (1 - s11) * (1 - s22) - s12 * s21
+#     denom = (1 - s11) * (1 - s22) - s12 * s21
 
-    z11 = ((z01c + s11 * z01) * (1 - s22) + s12 * s21 * z01) / denom
-    z12 = (2 * s12 * (r01 * r02)**0.5) / denom
-    z21 = (2 * s21 * (r01 * r02)**0.5) / denom
-    z22 = ((z02c + s22 * z02) * (1 - s11) + s12 * s21 * z02) / denom
+#     z11 = ((z01c + s11 * z01) * (1 - s22) + s12 * s21 * z01) / denom
+#     z12 = (2 * s12 * (r01 * r02)**0.5) / denom
+#     z21 = (2 * s21 * (r01 * r02)**0.5) / denom
+#     z22 = ((z02c + s22 * z02) * (1 - s11) + s12 * s21 * z02) / denom
     
-    zparam = np.empty_like(sparam)
-    zparam[0,0] = z11
-    zparam[1,0] = z21
-    zparam[0,1] = z12
-    zparam[1,1] = z22
+#     zparam = np.empty_like(sparam)
+#     zparam[0,0] = z11
+#     zparam[1,0] = z21
+#     zparam[0,1] = z12
+#     zparam[1,1] = z22
 
-    return zparam
+#     return zparam
 
 
 def s_to_tparam(sparam):
+    """Convert S-parameters to T-parameters.
+
+    Args:
+        sparam (ndarray): S-parameters
+
+    Returns:
+        ndarray: T-parameters
+
+    """
 
     s11 = sparam[0,0]
     s21 = sparam[1,0]
@@ -74,6 +95,16 @@ def s_to_tparam(sparam):
 
 
 def s_to_zparam(sparam, z0):
+    """Convert S-parameters to Z-parameters.
+
+    Args:
+        sparam (ndarray): S-parameters
+        z0 (ndarray): port impedance
+
+    Returns:
+        ndarray: Z-parameters
+
+    """
 
     z01 = z0[0]
     z02 = z0[1]
@@ -100,20 +131,20 @@ def s_to_zparam(sparam, z0):
     zparam[1, 0] = z21 / denom
     zparam[1, 1] = z22 / denom
 
-    # import matplotlib.pyplot as plt 
-    # # plt.plot(denom)
-    # plt.plot(np.abs(s12 * s21))
-    # plt.plot(np.abs((1 - s11)*(1 - s22)))
-    # # plt.plot(rf_cct.f, np.abs(z11))
-    # # plt.plot(rf_cct.f, np.abs(z12))
-    # # plt.plot(rf_cct.f, np.abs(z21))
-    # # plt.plot(rf_cct.f, np.abs(z22))
-    # plt.show()
-
     return zparam 
 
 
 def s_to_abcd(sparam, z0):
+    """Convert S-parameters to ABCD-parameters.
+
+    Args:
+        sparam (ndarray): S-parameters
+        z0 (ndarray): port impedance
+
+    Returns:
+        ndarray: ABCD-parameters
+
+    """
 
     z01 = z0[0]
     z02 = z0[1]
@@ -145,6 +176,16 @@ def s_to_abcd(sparam, z0):
 # ... to S-parameters --------------------------------------------------------
 
 def z_to_sparam(zparam, z0):
+    """Convert Z-parameters to S-parameters.
+
+    Args:
+        zparam (ndarray): Z-parameters
+        z0 (ndarray): port impedance
+
+    Returns:
+        ndarray: S-parameters
+
+    """
 
     z11 = zparam[0, 0]
     z12 = zparam[0, 1]
@@ -175,6 +216,16 @@ def z_to_sparam(zparam, z0):
 
 
 def abcd_to_sparam(abcd, z0):
+    """Convert ABCD-parameters to S-parameters.
+
+    Args:
+        abcd (ndarray): ABCD-parameters
+        z0 (ndarray): port impedance
+
+    Returns:
+        ndarray: S-parameters
+
+    """
 
     z01 = z0[0]
     z02 = z0[1]
@@ -204,6 +255,15 @@ def abcd_to_sparam(abcd, z0):
 
 
 def t_to_sparam(tparam):
+    """Convert T-parameters to S-parameters.
+
+    Args:
+        tparam (ndarray): T-parameters
+
+    Returns:
+        ndarray: S-parameters
+
+    """
 
     t11 = tparam[0,0]
     t21 = tparam[1,0]

@@ -2,6 +2,7 @@
 
 import numpy as np 
 from numpy.linalg import inv
+from numpy import diag, sqrt, identity, matmul, iscomplex
 import matplotlib.pyplot as plt 
 from copy import deepcopy as copy
 from rftools.parameters import *
@@ -212,33 +213,45 @@ class Network(object):
 
     ### Port impedance ###
 
-    # def renormalise_ports(self, z0new=None):
-    #     # http://qucs.sourceforge.net/tech/node98.html
+    def renormalize_ports(self, z0new=None):
+        # http://qucs.sourceforge.net/tech/node98.html
 
-    #     print "THIS FUNCTION DOESNT WORK"
+        # print("THIS FUNCTION DOESNT WORK")
 
-    #     if z0new is None:
-    #         z0new = np.ones_like(self.z0) * 50.
+        _, _, npts = self.s.shape
+        nports = self.count_ports()
 
-    #     _, _, npts = self.s.shape
-    #     nports = self.count_ports()
+        if z0new is None:
+            z0new = np.ones((len(self.z0), npts)) * 50.
+        elif isinstance(z0new, float) or isinstance(z0new, int):
+            z0new = np.ones((len(self.z0), npts)) * z0new
+            assert not iscomplex(z0new).any(), "Renormalization does not work with complex port impedances."
+        elif z0new.ndim == 1:
+            assert not iscomplex(z0new).any(), "Renormalization does not work with complex port impedances."
+            z0new = np.array([z0new for _ in range(npts)]).T
 
-    #     for i in range(npts):
+        assert z0new.shape[0] == nports 
+        assert z0new.shape[1] == npts
 
-    #         S = np.matrix(self.s[:,:,i])
+        assert not iscomplex(self.z0).any(), "Renormalization does not work with complex port impedances."
+        
+        for i in range(npts):
 
-    #         Znbefore = self.z0[:,i]
-    #         Zn = z0new[:,i]
+            # original s parameter matrix
+            s = self.s[..., i]
 
-    #         r = (Zn - Znbefore) / (Zn + Znbefore)
-    #         R = np.diag(r)
-    #         print R
+            # reference impedance before renomalization
+            zn_before = self.z0[..., i]
 
-    #         a = np.sqrt(Zn / Znbefore) / (Zn + Znbefore)
-    #         A = np.diag(a)
+            # reference impedance after renormalization
+            zn = z0new[..., i]
 
-    #         self.s[:,:,i] = inv(A) * (S - R) * inv(np.identity(nports) - R * S) * A
-    #         self.z0[:,i] = Zn
+            # new s parameters
+            snew = z_to_sparam(s_to_zparam(s, zn_before), zn)
+            self.s[:,:,i] = snew
+            
+            # new port reference impedance
+            self.z0[:,i] = zn
 
     ### Manipulate ports ###
 
@@ -258,26 +271,36 @@ class Network(object):
                 return i 
         raise ValueError
 
-    def delete_port(self, port):
+    def list_ports(self):
+        """List all port numbers and port names."""
+
+        for i in range(len(self.ports)):
+            print("{} : {}".format(i, self.ports[i]))
+
+    def delete_port(self, port_name):
         """Delete port.
 
         Assumes that the port is matched, i.e., that it can be simply deleted.
 
         Args:
-            port (str): port name
+            port_name (str): port name
 
         """
 
-        port_num = self.get_port_number(port)
+        try:
+            port_num = self.get_port_number(port_name)
 
-        mask = np.arange(len(self.ports)) != port_num
-        s = self.s[mask]
-        self.s = s[:,mask]
-        self.z0 = self.z0[mask]
+            mask = np.arange(len(self.ports)) != port_num
+            s = self.s[mask]
+            self.s = s[:,mask]
+            self.z0 = self.z0[mask]
 
-        ports = list(self.ports)
-        ports.remove(port)
-        self.ports = tuple(ports)
+            ports = list(self.ports)
+            ports.remove(port_name)
+            self.ports = tuple(ports)
+
+        except:
+            print("The \"{}\" port does not exist.".format(port_name))
 
     def rename_port(self, old_name, new_name):
         """Rename port.
@@ -610,6 +633,7 @@ class Network(object):
         ax.set(**params)
         ax.set_xlabel('Frequency (GHz)')
         ax.set_ylabel('Magnitude (dB)')
+        ax.set_xlim([self.f.min(), self.f.max()])
 
         if filename is not None:
             fig.savefig(fig_name, bbox_inches='tight')
@@ -641,6 +665,48 @@ class Network(object):
         ax.set_xlabel(r'Frequency (GHz)')
         ax.set_ylabel(r'Impedance ($\Omega$)')
         ax.legend(title=r'$Z_\mathrm{{in}}$ at {}'.format(port))
+        ax.set_xlim([self.f.min(), self.f.max()])
+        ax.set(**params)
+
+        if filename is not None:
+            fig.savefig(fig_name, bbox_inches='tight')
+            plt.close(fig)
+            return
+        else:
+            return ax
+
+    def plot_z0(self, port=None, filename=None, ax=None, **params):
+        """Plot port impedance.
+
+        Args:
+            port: port to plot, will plot all if not specified
+
+        Keyword Args:
+            filename: figure file name
+            ax: matplotlib axis to use
+
+        """
+    
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+            
+        if port is not None:
+            zin = self.get_z0(port)
+            ax.plot(self.f, zin.real, 'b', label='Real')
+            ax.plot(self.f, zin.imag, 'r', label='Imaginary')
+            ax.legend(title=r'$Z_0$ at {}'.format(port))
+        else:
+            ports = self.ports
+            for port in ports:
+                zin = self.get_z0(port)
+                l = ax.plot(self.f, zin.real, label='{} real'.format(port))
+                ax.plot(self.f, zin.imag, label='{} imag'.format(port), c=l[0].get_color(), ls='--')    
+            ax.legend()
+        ax.set_xlabel(r'Frequency (GHz)')
+        ax.set_ylabel(r'Port Impedance ($\Omega$)')
+        ax.set_xlim([self.f.min(), self.f.max()])
         ax.set(**params)
 
         if filename is not None:
@@ -785,7 +851,7 @@ def _is_float(entry):
 def _deg_to_rad(deg):
     """Degrees to radians."""
 
-    return deg * np.pi / 180.   
+    return deg * np.pi / 180  
 
 
 # Filters -------------------------------------------------------------------

@@ -9,6 +9,7 @@ Ref:
 import numpy as np
 import scipy.constants as sc
 from rftools.util import pvalf, header
+from rftools.misc import surface_resistance
 
 from numpy import sqrt, exp
 from numpy import log as ln
@@ -58,13 +59,16 @@ class RectangularWaveguide:
 
         if verbose:
             header("Rectangular Waveguide: {0}".format(comment))
-            print("\n\tDimensions:")
+            print("\n\tDimensions (metric):")
             if a / sc.milli > 1:
                 pvalf('a', a / sc.milli, 'mm')
                 pvalf('b', b / sc.milli, 'mm')
             else:
                 pvalf('a', a / sc.micro, 'um')
                 pvalf('b', b / sc.micro, 'um')
+            print("\n\tDimensions (imperial):")
+            pvalf('a', a / sc.mil, 'mil')
+            pvalf('b', b / sc.mil, 'mil')
             print("")
             print("\tStandard frequency range:")
             pvalf('low', self.f1 / sc.giga, 'GHz')
@@ -196,17 +200,23 @@ class RectangularWaveguide:
 
         """
 
-        # cutoff wavelength of TE10
-        lambda_c = sc.c / self.fc
+        # # cutoff wavelength of TE10
+        # lambda_c = sc.c / self.fc
         
-        # freespace wavelength
-        lambda_0 = sc.c / freq
+        # # freespace wavelength
+        # lambda_0 = sc.c / freq
 
-        # Eqn from pg 630 of Maxwell 1947
-        att = ((1 / (2 * self.b)) *
-               (1 / (1 - (lambda_0 / lambda_c) ** 2) ** 0.5) *
-               ((4 * pi / (lambda_0 * sc.mu_0 * sc.c * cond)) ** 0.5) *
-               (1 + 2 * self.b / self.a * (lambda_0 / lambda_c) ** 2))
+        # # Eqn from pg 630 of Maxwell 1947
+        # att = ((1 / (2 * self.b)) *
+        #        (1 / (1 - (lambda_0 / lambda_c) ** 2) ** 0.5) *
+        #        ((4 * pi / (lambda_0 * sc.mu_0 * sc.c * cond)) ** 0.5) *
+        #        (1 + 2 * self.b / self.a * (lambda_0 / lambda_c) ** 2))
+
+        k = self.k(freq)
+        beta = self.beta(freq, 'TE10')
+        rs = surface_resistance(freq, cond)
+
+        att = rs / self.a**3 / self.b / beta / k / self.eta * (2 * self.b * pi**2 + self.a**3 * k**2)
 
         return att
 

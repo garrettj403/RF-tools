@@ -1,3 +1,4 @@
+"""Tools for designing RF components and networks."""
 
 from rftools.network import Network
 import rftools.noise

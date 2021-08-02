@@ -13,11 +13,11 @@ import scipy.constants as sc
 
 z0 = sc.physical_constants['characteristic impedance of vacuum'][0]
 
-# Dielectric properties (approximate)
+# Dielectric properties (approximate values from literature)
 
 HDPE_N = 1.5247
 MYLAR_N = 1.75
-ZITEX_N = 1.20
+ZITEX_N = 1.22
 TEFLON_N = 1.44
 
 

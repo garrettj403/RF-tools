@@ -3,7 +3,7 @@
 from rftools.network import Network
 import rftools.noise
 from rftools.tlines import RectangularWaveguide, CircularWaveguide, Microstrip
-from rftools.conduction import (skin_depth, mean_free_path, conductivity_4k,
+from rftools.conduction import (skin_depth, mean_free_path, conductivity_ase,
                                 conductivity_rough, surface_resistance)
 
 __author__ = "John Garrett"

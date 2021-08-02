@@ -54,7 +54,7 @@ def mean_free_path(conductivity, fermi_speed, e_density):
     return conductivity * m_e * fermi_speed / (e_density * e ** 2)
 
 
-def conductivity_4k(frequency, fermi_speed, e_density, beta=1.5, mu_r=1):
+def conductivity_ase(frequency, fermi_speed, e_density, beta=1.5, mu_r=1):
     """Calculate the effective conductivity in the regime of the
     anomalous skin effect (ASE).
 
@@ -134,8 +134,8 @@ if __name__ == "__main__":
     print("\tLength ratio at 300 K:\t\t{:5.3f}".format(mean_free_path(cond, vf, ne) / skin_depth(f, cond)))
     print("\tLength ratio at 4.2 K:\t\t{:5.3f}".format(mean_free_path(cond * rrr, vf, ne) / skin_depth(f, cond * rrr)))
     print("")
-    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_4k(f, vf, ne)))
-    print("\tEffective RRR:\t\t\t{:5.1f}\t\tS/m".format(conductivity_4k(f, vf, ne)/cond))
+    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_ase(f, vf, ne)))
+    print("\tEffective RRR:\t\t\t{:5.1f}\t\tS/m".format(conductivity_ase(f, vf, ne) / cond))
     print("")
 
     # Gold properties (see Lamb1996)
@@ -154,8 +154,8 @@ if __name__ == "__main__":
     print("")
     print("\tLength ratio at 300 K:\t\t{:.2f}".format(mean_free_path(cond, vf, ne) / skin_depth(f, cond)))
     print("")
-    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_4k(f, vf, ne)))
-    print("\tEffective RRR:\t\t\t{:.1f}\t\tS/m".format(conductivity_4k(f, vf, ne)/cond))
+    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_ase(f, vf, ne)))
+    print("\tEffective RRR:\t\t\t{:.1f}\t\tS/m".format(conductivity_ase(f, vf, ne) / cond))
     print("")
 
     # Aluminum properties (see Lamb1996)
@@ -179,6 +179,6 @@ if __name__ == "__main__":
     print("\tLength ratio at 300 K:\t\t{:5.3f}".format(mean_free_path(cond, vf, ne) / skin_depth(f, cond)))
     print("\tLength ratio at 4.2 K:\t\t{:5.3f}".format(mean_free_path(cond * rrr, vf, ne) / skin_depth(f, cond * rrr)))
     print("")
-    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_4k(f, vf, ne)))
-    print("\tEffective RRR:\t\t\t{:5.1f}\t\tS/m".format(conductivity_4k(f, vf, ne)/cond))
+    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_ase(f, vf, ne)))
+    print("\tEffective RRR:\t\t\t{:5.1f}\t\tS/m".format(conductivity_ase(f, vf, ne) / cond))
     print("")

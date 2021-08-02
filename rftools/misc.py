@@ -44,7 +44,7 @@ def mean_free_path(cond, fermi_speed, e_density):
     return cond * m_e * fermi_speed / (e_density * e ** 2)
 
 
-def conductivity_4k(freq, fermi_speed, e_density, mu_r=1):
+def conductivity_4k(freq, fermi_speed, e_density, beta=1.5, mu_r=1):
     """Calculate the effective conductivity at 4K in the regime of the 
     anomalous skin effect.
 
@@ -59,7 +59,7 @@ def conductivity_4k(freq, fermi_speed, e_density, mu_r=1):
 
     """
 
-    return (e_density ** 2 * e ** 4 / 
+    return (beta ** 2 * e_density ** 2 * e ** 4 / 
         (pi * mu_r * mu_0 * m_e ** 2 * fermi_speed ** 2 * freq)) ** (1 / 3)
 
 

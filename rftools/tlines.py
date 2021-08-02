@@ -9,7 +9,7 @@ Ref:
 import numpy as np
 import scipy.constants as sc
 from rftools.util import pvalf, header
-from rftools.misc import surface_resistance
+from rftools.conduction import surface_resistance
 
 from numpy import sqrt, exp
 from numpy import log as ln

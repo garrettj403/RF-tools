@@ -88,6 +88,7 @@ def conductivity_rough(freq, cond, h, model='groiss'):
         print("Model not recognized")
         raise ValueError
 
+
 if __name__ == "__main__":
     """Print out the properties of copper and gold at 300K and 4K."""
 

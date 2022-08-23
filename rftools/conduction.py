@@ -1,4 +1,4 @@
-"""Miscellaneous functions."""
+"""Functions related to conductivity/resistivity."""
 
 import numpy as np 
 import scipy.constants as sc 
@@ -6,75 +6,100 @@ import scipy.constants as sc
 from numpy import pi, sqrt, arctan
 from scipy.constants import mu_0, m_e, e
 
-def skin_depth(freq, cond, mu_r=1):
+
+def surface_resistance(frequency, conductivity):
+    """Calculate surface resistance.
+
+    Args:
+        frequency (float): frequency, in [Hz]
+        conductivity (float): conductivity, in [S/m]
+
+    Returns:
+        float: surface resistance, in [ohm/sq.]
+
+    """
+
+    return sqrt(2 * pi * frequency * sc.mu_0 / 2 / conductivity)
+
+
+def skin_depth(frequency, conductivity, mu_r=1):
     """Calculate skin depth.
 
     Args:
-        freq (float): frequency in [Hz]
-        cond (float): conductivity in [S/m]
+        frequency (float): frequency, in [Hz]
+        conductivity (float): conductivity, in [S/m]
         mu_r (float): relative permeability
 
     Returns:
-        float: skin depth in [m]
+        float: skin depth, in [m]
 
     """
 
-    return 1 / sqrt(pi * mu_r * mu_0 * cond * freq)
+    return 1 / sqrt(pi * mu_r * mu_0 * conductivity * frequency)
 
 
-def mean_free_path(cond, fermi_speed, e_density):
-    """Calculate mean free path between collisions.
+def mean_free_path(conductivity, fermi_speed, e_density):
+    """Calculate mean free path.
 
     Args:
-        cond (float): conductivity in [S/m]
-        fermi_speed (float): Fermi speed in [m/s]
-        e_density (float): electron density [m-3]
+        conductivity (float): conductivity, in [S/m]
+        fermi_speed (float): Fermi speed, in [m/s]
+        e_density (float): electron density, in [m-3]
 
     Returns:
-        float: mean free path in [m]
+        float: mean free path, in [m]
 
     """
 
-    return cond * m_e * fermi_speed / (e_density * e ** 2)
+    return conductivity * m_e * fermi_speed / (e_density * e ** 2)
 
 
-def conductivity_4k(freq, fermi_speed, e_density, mu_r=1):
-    """Calculate the effective conductivity at 4K in the regime of the 
-    anomalous skin effect.
+def conductivity_ase(frequency, fermi_speed, e_density, beta=1.5, mu_r=1):
+    """Calculate the effective conductivity in the regime of the
+    anomalous skin effect (ASE).
 
     Args:
-        freq (float): frequency in [Hz]
-        fermi_speed (float): Fermi speed in [m/s]
-        e_density (float): electron density [m-3]
+        frequency (float): frequency, in [Hz]
+        fermi_speed (float): Fermi speed, in [m/s]
+        e_density (float): electron density, in [m-3]
         mu_r (float): relative permeability
 
     Returns:
-        float: effective conductivity
+        float: effective conductivity, in
 
     """
 
-    return (e_density ** 2 * e ** 4 / 
-        (pi * mu_r * mu_0 * m_e ** 2 * fermi_speed ** 2 * freq)) ** (1 / 3)
+    t1 = beta ** 2 * e_density ** 2 * e ** 4
+    t2 = pi * mu_r * mu_0 * m_e ** 2 * fermi_speed ** 2 * frequency
+
+    return (t1 / t2) ** (1 / 3)
 
 
-def conductivity_rough(freq, cond, h):
-    """Calculate the effective conductivity of a rough metal.
-
-    Using the Hammerstad-Bekkadal (HB) formula.
+def conductivity_rough(frequency, conductivity, rq, model='groiss'):
+    """Calculate the effective conductivity of a rough metal using different
+    semi-analytical / semi-empirical models.
 
     Args:
-        freq (float): frequency in [Hz]
-        cond (float): conductivity in [S/m]
-        h (float): rms surface roughness in [m]
+        frequency (float): frequency in [Hz]
+        conductivity (float): conductivity in [S/m]
+        rq (float): rms surface roughness in [m]
+        model (str): 'groiss' for Groiss model, 'hb' for Hammerstad-Bekkadal
+            model
 
     Returns:
-        float: effective conductivity
+        float: effective conductivity, in [S/m]
 
     """
     
-    d = skin_depth(freq, cond)
+    ds = skin_depth(frequency, conductivity)
     
-    return cond * (1 + 2 / pi * arctan(1.4 * (h / d) ** 2)) ** (-2)
+    if model.lower() == 'groiss':
+        return conductivity * (1 + np.exp(-(ds / 2 / rq) ** 1.6)) ** -2
+    elif model.lower() == 'hb':
+        return conductivity * (1 + 2 / pi * arctan(1.4 * (rq / ds) ** 2)) ** -2
+    else:
+        print("Model not recognized")
+        raise ValueError
 
 
 if __name__ == "__main__":
@@ -109,9 +134,8 @@ if __name__ == "__main__":
     print("\tLength ratio at 300 K:\t\t{:5.3f}".format(mean_free_path(cond, vf, ne) / skin_depth(f, cond)))
     print("\tLength ratio at 4.2 K:\t\t{:5.3f}".format(mean_free_path(cond * rrr, vf, ne) / skin_depth(f, cond * rrr)))
     print("")
-    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(effective_conductivity(f, vf, ne)))
-    print("\tEffective RRR:\t\t\t{:5.1f}\t\tS/m".format(effective_conductivity(f, vf, ne)/cond))
-    # print("\tEffective skin depth:\t\t{:5.1f}\t\tnm".format(skin_depth(f, effective_conductivity(f, vf, ne)) / sc.nano)) 
+    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_ase(f, vf, ne)))
+    print("\tEffective RRR:\t\t\t{:5.1f}\t\tS/m".format(conductivity_ase(f, vf, ne) / cond))
     print("")
 
     # Gold properties (see Lamb1996)
@@ -130,8 +154,8 @@ if __name__ == "__main__":
     print("")
     print("\tLength ratio at 300 K:\t\t{:.2f}".format(mean_free_path(cond, vf, ne) / skin_depth(f, cond)))
     print("")
-    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(effective_conductivity(f, vf, ne)))
-    print("\tEffective RRR:\t\t\t{:.1f}\t\tS/m".format(effective_conductivity(f, vf, ne)/cond))
+    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_ase(f, vf, ne)))
+    print("\tEffective RRR:\t\t\t{:.1f}\t\tS/m".format(conductivity_ase(f, vf, ne) / cond))
     print("")
 
     # Aluminum properties (see Lamb1996)
@@ -155,7 +179,6 @@ if __name__ == "__main__":
     print("\tLength ratio at 300 K:\t\t{:5.3f}".format(mean_free_path(cond, vf, ne) / skin_depth(f, cond)))
     print("\tLength ratio at 4.2 K:\t\t{:5.3f}".format(mean_free_path(cond * rrr, vf, ne) / skin_depth(f, cond * rrr)))
     print("")
-    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(effective_conductivity(f, vf, ne)))
-    print("\tEffective RRR:\t\t\t{:5.1f}\t\tS/m".format(effective_conductivity(f, vf, ne)/cond))
-    # print("\tEffective skin depth:\t\t{:5.1f}\t\tnm".format(skin_depth(f, effective_conductivity(f, vf, ne)) / sc.nano)) 
+    print("\tEffective conductivity at 4K:\t{:.2e}\tS/m".format(conductivity_ase(f, vf, ne)))
+    print("\tEffective RRR:\t\t\t{:5.1f}\t\tS/m".format(conductivity_ase(f, vf, ne) / cond))
     print("")

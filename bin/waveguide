@@ -42,6 +42,7 @@ pvalf('TE10   ', wg.cutoff('TE10') / sc.giga, 'GHz')
 pvalf('TE20   ', wg.cutoff('TE20') / sc.giga, 'GHz')
 pvalf('TE01   ', wg.cutoff('TE01') / sc.giga, 'GHz')
 pvalf('TE/TM11', wg.cutoff('TE11') / sc.giga, 'GHz')
+pvalf('TE/TM21', wg.cutoff('TE21') / sc.giga, 'GHz')
 
 # Analyze frequency
 if args.freq is None:
@@ -51,11 +52,12 @@ else:
 print(("\n\tProperties at {0} GHz:".format(round(freq / sc.giga, 1))))
 pvalf('wavelength', wg.wavelength(freq, args.mode) / sc.milli, 'mm')
 pvalf('impedance', wg.impedance(freq, args.mode), 'ohms')
+pvalf('beta', wg.beta(freq, args.mode), 'rad/m')
 print("")
 
 # Plot characteristic impedance
 if args.plotz:
-    f_= wg.cutoff(args.mode)
+    f_cutoff = wg.cutoff(args.mode)
 
     f = np.linspace(0.8 * f_cutoff, 2.1 * f_cutoff, 300)
 
@@ -67,7 +69,7 @@ if args.plotz:
 
 # Plot wavelength
 if args.plotw:
-    f_= wg.cutoff(args.mode)
+    f_cutoff = wg.cutoff(args.mode)
 
     f = np.linspace(0.8 * f_cutoff, 2.1 * f_cutoff, 300)
 

@@ -28,9 +28,13 @@ Output:
     Rectangular Waveguide: WR4.3
     --------------------------------------------------
 
-    Dimensions:
+    Dimensions (metric):
     a                      1.092        [mm]
     b                      0.546        [mm]
+
+    Dimensions (imperial):
+    a                     43.000        [mil]
+    b                     21.500        [mil]
 
     Standard frequency range:
     low                  171.553        [GHz]
@@ -42,10 +46,12 @@ Output:
     TE20                 274.485        [GHz]
     TE01                 274.485        [GHz]
     TE/TM11              306.883        [GHz]
+    TE/TM21              388.180        [GHz]
 
     Properties at 230.0 GHz:
     wavelength             1.624        [mm]
     impedance            469.469        [ohms]
+    beta                   3.868 E+03   [rad/m]
 ```
 
 **Calculate the attenuation constant of a WR2.8 waveguide at 345 GHz:**
@@ -59,9 +65,13 @@ Output
     Rectangular Waveguide: WR2.8
     --------------------------------------------------
 
-    Dimensions:
+    Dimensions (metric):
     a                    711.200        [um]
     b                    355.600        [um]
+
+    Dimensions (imperial):
+    a                     28.000        [mil]
+    b                     14.000        [mil]
 
     Standard frequency range:
     low                  263.457        [GHz]

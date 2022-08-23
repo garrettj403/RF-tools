@@ -14,10 +14,10 @@
 *.py.bak
 *.pyc
 
-
 *.egg-info/
 build/
 dist/
 __pycache__/
 
 TODO.md
+new-version.md
